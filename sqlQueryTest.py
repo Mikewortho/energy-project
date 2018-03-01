@@ -1,3 +1,6 @@
+import pyspark
+from pyspark.sql import SQLContext
+
 #aggragates hourly data into days (Average)(BETWEEN dates)
 def aggtoDay(startDate, endDate):
     days = spark.sql("SELECT BA, Date, AVG(Demand) TotalDemand from (SELECT BA, Demand, DATE(TimeAndDate) as Date from temp where Demand IS NOT NULL AND TimeAndDate BETWEEN '"+startDate+"' AND '"+endDate+"') GROUP BY Date, BA ORDER BY Date" ).repartition(1).write.csv("AggragatedToDays.csv")
@@ -24,9 +27,28 @@ def aggtoDWMY():
     years = spark.sql("SELECT BA, Year(Date) year, AVG(Demand) TotalDemand from (SELECT BA, Demand, TimeAndDate as Date from temp where Demand IS NOT NULL) GROUP BY year, BA ORDER BY year").repartition(1).write.csv("AggragatedToYears.csv")
     return days,weeks,months,years
 
-import pyspark
-from pyspark.sql import SQLContext
+# Split data into test and training (TODO speedup with indexing query instead)
+def trainingSplit(trainingRatio, fullData):
+    count = fullData.count()
+    train_count = int(round((count * trainingRatio)))
+    training_data = fullData.limit(train_count)
+    test_data = fullData.subtract(training_data)
+    return training_data, test_data
 
+# Split data into k folds (TODO speedup with indexing query instead)
+def foldsSplit(k, fullData):
+    count = fullData.count()
+    pivot = int(round((count / k)))  
+    folds = []
+    for i in range(k):
+        if(i == 0):
+            folds.append(fullData.limit(pivot))
+        else:
+            for j in range(len(folds)):
+                temp = fullData.subtract(folds[j])
+            folds.append(temp.limit(pivot))         
+    return folds            
+            
 # Create spark context and sparkSQL objects
 sc = pyspark.SparkContext.getOrCreate()
 spark = SQLContext(sc) 
@@ -37,13 +59,15 @@ df = (spark.read
         .option("header", "true")
         .load("data/elec_demand_hourly.csv"))
 
+# Register temporary table including DateTime representation of columns
+df.registerTempTable("temp")
+df = spark.sql("SELECT *, CAST(CONCAT( Year, '-', Month, '-', Day, ' ', Hour ) as timestamp) as TimeAndDate from temp ORDER BY TimeAndDate ASC")
 df.registerTempTable("temp")
 
-df = spark.sql("SELECT *, CAST(CONCAT( Year, '-', Month, '-', Day, ' ', Hour ) as timestamp) as TimeAndDate from temp")
-df.registerTempTable("temp")
+# Below shows examples of how to use some queries
 
 #splitOnDate("2017-02-11 12:00:00","2018-02-11 13:00:00", 80, 20)
-aggtoDWMY()
+#aggtoDWMY()
 # Print first ten rows (0 = header)
 #df.show(10)
 
@@ -52,4 +76,3 @@ aggtoDWMY()
 
 # Ensure previous spark context has closed (Will fix this)
 sc.stop() 
-
