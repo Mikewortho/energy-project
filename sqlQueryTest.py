@@ -1,6 +1,10 @@
 import pyspark
 from pyspark.sql import SQLContext
 
+# extracts data between two dates
+def extractDate(startDate, endDate):
+    return spark.sql("SELECT * from temp where TimeAndDate BETWEEN '" + startDate+ "' AND '" + endDate + "' ORDER BY TimeAndDate ASC")
+
 #aggragates hourly data into days (Average)(BETWEEN dates)
 def aggtoDay(startDate, endDate):
     days = spark.sql("SELECT BA, Date, AVG(Demand) TotalDemand from (SELECT BA, Demand, DATE(TimeAndDate) as Date from temp where Demand IS NOT NULL AND TimeAndDate BETWEEN '"+startDate+"' AND '"+endDate+"') GROUP BY Date, BA ORDER BY Date" ).repartition(1).write.csv("AggragatedToDays.csv")
