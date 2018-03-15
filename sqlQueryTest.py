@@ -113,15 +113,13 @@ df.registerTempTable("temp")
 startDate = "01-01-2009"
 endDate = "01-01-2017"
 region = "DUK"
+print("hello")
 #regionDataframe()
 #Query = spark.sql("SELECT Year(TimeAndDate), Month(TimeAndDate), weekOfYear(TimeAndDate), Hour(TimeAndDate), Demand from temp where TimeAndDate between '"+startDate+"' and '"+endDate+"' and BA = '"+region+"'")
 #Query.show(10)
 
 
 
-
-=======
->>>>>>> 9dff80359044c8a64bfcf31d2777c9f4db09ae5e
 
 
 # Below shows examples of how to use some queries
