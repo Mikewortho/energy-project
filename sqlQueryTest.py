@@ -64,6 +64,13 @@ def getMissingDates():
         tempList.append(BA)
         listOfDataframes.append(tempList)
     return listOfDataframes
+
+def regionDataframe():
+    letsSee = spark.sql("Select BA, Name, TimeZone, Region, Name, AVG(Demand) Demand from (Select * from temp natural join temp3) group by BA, Name, TimeZone, Region, Name").show(59)
+
+
+
+
 # Create spark context and sparkSQL objects
 sc = pyspark.SparkContext.getOrCreate()
 spark = SQLContext(sc) 
@@ -76,11 +83,34 @@ df = (spark.read
 df2 = spark.read.csv("temp.csv", header=True, inferSchema=True)
 df.registerTempTable("temp")
 df2.registerTempTable("temp2")
-df2 = spark.sql("SELECT * from temp2").show(10)
 
 # Register temporary table including DateTime representation of columns
 df = spark.sql("SELECT BA, CAST(Demand as int), CAST(Hour as int), CAST(Day as int), CAST(Month as int), CAST(Year as int), CAST(Weekday as int), CAST(CONCAT( Year, '-', Month, '-', Day, ' ', Hour ) as timestamp) as TimeAndDate from temp")
 df.registerTempTable("temp")
+
+# Use sparkSQL to read in CSV
+df = (spark.read
+        .format("com.databricks.spark.csv")
+        .option("header", "true")
+        .load("data/elec_demand_hourly.csv"))
+df2 = spark.read.csv("temp.csv", header=True, inferSchema=True)
+df3 = spark.read.csv("temp3.csv", header=True, inferSchema=True)
+df3.registerTempTable("temp3")
+df.registerTempTable("temp")
+df2.registerTempTable("temp2")
+
+# Register temporary table including DateTime representation of columns
+df = spark.sql("SELECT BA, CAST(Demand as int), CAST(Hour as int), CAST(Day as int), CAST(Month as int), CAST(Year as int), CAST(Weekday as int), CAST(CONCAT( Year, '-', Month, '-', Day, ' ', Hour ) as timestamp) as TimeAndDate from temp")
+df.registerTempTable("temp")
+startDate = "01-01-2009"
+endDate = "01-01-2017"
+region = "DUK"
+#regionDataframe()
+#Query = spark.sql("SELECT Year(TimeAndDate), Month(TimeAndDate), weekOfYear(TimeAndDate), Hour(TimeAndDate), Demand from temp where TimeAndDate between '"+startDate+"' and '"+endDate+"' and BA = '"+region+"'")
+#Query.show(10)
+
+
+
 
 
 
