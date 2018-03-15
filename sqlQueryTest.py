@@ -64,6 +64,7 @@ def getMissingDates():
         tempList.append(BA)
         listOfDataframes.append(tempList)
     return listOfDataframes
+<<<<<<< HEAD
 
 def regionDataframe():
     letsSee = spark.sql("Select BA, Name, TimeZone, Region, Name, AVG(Demand) Demand from (Select * from temp natural join temp3) group by BA, Name, TimeZone, Region, Name").show(59)
@@ -71,6 +72,8 @@ def regionDataframe():
 
 
 
+=======
+>>>>>>> 9dff80359044c8a64bfcf31d2777c9f4db09ae5e
 # Create spark context and sparkSQL objects
 sc = pyspark.SparkContext.getOrCreate()
 spark = SQLContext(sc) 
@@ -83,11 +86,16 @@ df = (spark.read
 df2 = spark.read.csv("temp.csv", header=True, inferSchema=True)
 df.registerTempTable("temp")
 df2.registerTempTable("temp2")
+<<<<<<< HEAD
+=======
+df2 = spark.sql("SELECT * from temp2").show(10)
+>>>>>>> 9dff80359044c8a64bfcf31d2777c9f4db09ae5e
 
 # Register temporary table including DateTime representation of columns
 df = spark.sql("SELECT BA, CAST(Demand as int), CAST(Hour as int), CAST(Day as int), CAST(Month as int), CAST(Year as int), CAST(Weekday as int), CAST(CONCAT( Year, '-', Month, '-', Day, ' ', Hour ) as timestamp) as TimeAndDate from temp")
 df.registerTempTable("temp")
 
+<<<<<<< HEAD
 # Use sparkSQL to read in CSV
 df = (spark.read
         .format("com.databricks.spark.csv")
@@ -112,6 +120,8 @@ region = "DUK"
 
 
 
+=======
+>>>>>>> 9dff80359044c8a64bfcf31d2777c9f4db09ae5e
 
 
 # Below shows examples of how to use some queries
