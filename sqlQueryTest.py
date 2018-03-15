@@ -51,8 +51,19 @@ def foldsSplit(k, fullData):
             for j in range(len(folds)):
                 temp = fullData.subtract(folds[j])
             folds.append(temp.limit(pivot))         
-    return folds            
-            
+    return folds
+
+# Method to get missing dates for each BA, returns a list of format [[Dataframe(of missing dates for BA), BA],[Dataframe(of missing dates for BA), BA]......]
+def getMissingDates():
+    dftemp = spark.sql("Select BA, MAX(TimeAndDate) max ,Min(TimeAndDate) min from temp GROUP BY BA")
+    sample2 = dftemp.take(dftemp.count())
+    listOfDataframes = []
+    for BA, ENDTIME, STARTTIME in sample2:
+        tempList = []
+        tempList.append(spark.sql("Select TimeAndDate from (Select * from temp2 where TimeAndDate<'"+str(ENDTIME)+"' AND TimeAndDate>'"+str(STARTTIME)+"') NATURAL LEFT JOIN (Select BA, TimeAndDate from temp where BA='"+BA+"') AS L WHERE BA IS NULL "))
+        tempList.append(BA)
+        listOfDataframes.append(tempList)
+    return listOfDataframes
 # Create spark context and sparkSQL objects
 sc = pyspark.SparkContext.getOrCreate()
 spark = SQLContext(sc) 
@@ -62,11 +73,16 @@ df = (spark.read
         .format("com.databricks.spark.csv")
         .option("header", "true")
         .load("data/elec_demand_hourly.csv"))
+df2 = spark.read.csv("temp.csv", header=True, inferSchema=True)
+df.registerTempTable("temp")
+df2.registerTempTable("temp2")
+df2 = spark.sql("SELECT * from temp2").show(10)
 
 # Register temporary table including DateTime representation of columns
+df = spark.sql("SELECT BA, CAST(Demand as int), CAST(Hour as int), CAST(Day as int), CAST(Month as int), CAST(Year as int), CAST(Weekday as int), CAST(CONCAT( Year, '-', Month, '-', Day, ' ', Hour ) as timestamp) as TimeAndDate from temp")
 df.registerTempTable("temp")
-df = spark.sql("SELECT *, CAST(CONCAT( Year, '-', Month, '-', Day, ' ', Hour ) as timestamp) as TimeAndDate from temp ORDER BY TimeAndDate ASC")
-df.registerTempTable("temp")
+
+
 
 # Below shows examples of how to use some queries
 
