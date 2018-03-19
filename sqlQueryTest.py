@@ -1,5 +1,6 @@
 import pyspark
 from pyspark.sql import SQLContext
+import zlib
 
 # extracts data between two dates
 def extractDate(startDate, endDate):
@@ -64,38 +65,26 @@ def getMissingDates():
         tempList.append(BA)
         listOfDataframes.append(tempList)
     return listOfDataframes
-<<<<<<< HEAD
 
 def regionDataframe():
     letsSee = spark.sql("Select BA, Name, TimeZone, Region, Name, AVG(Demand) Demand from (Select * from temp natural join temp3) group by BA, Name, TimeZone, Region, Name").show(59)
+    return
 
+#Turn a dataframe containing TimeAndDate, Demand as well as BA into a Json and compress's it using zlib
+def turnDataframeIntoJson(df5):
+    df = df5.rdd
+    tcp_interactions_out = df.map(lambda df: '{\"BA\":\"%s\",\"TimeAndDate\":\"%s\",\"Demand\":%s}' % (df.BA, df.TimeAndDate, df.Demand))
+    temp = tcp_interactions_out.collect()
+    sendString=''
+    for temp2 in temp:
+        sendString += temp2+'\n'
+    compressedJson = zlib.compress(sendString.encode())
+    return(compressedJson)
 
-
-
-=======
->>>>>>> 9dff80359044c8a64bfcf31d2777c9f4db09ae5e
 # Create spark context and sparkSQL objects
 sc = pyspark.SparkContext.getOrCreate()
 spark = SQLContext(sc) 
 
-# Use sparkSQL to read in CSV
-df = (spark.read
-        .format("com.databricks.spark.csv")
-        .option("header", "true")
-        .load("data/elec_demand_hourly.csv"))
-df2 = spark.read.csv("temp.csv", header=True, inferSchema=True)
-df.registerTempTable("temp")
-df2.registerTempTable("temp2")
-<<<<<<< HEAD
-=======
-df2 = spark.sql("SELECT * from temp2").show(10)
->>>>>>> 9dff80359044c8a64bfcf31d2777c9f4db09ae5e
-
-# Register temporary table including DateTime representation of columns
-df = spark.sql("SELECT BA, CAST(Demand as int), CAST(Hour as int), CAST(Day as int), CAST(Month as int), CAST(Year as int), CAST(Weekday as int), CAST(CONCAT( Year, '-', Month, '-', Day, ' ', Hour ) as timestamp) as TimeAndDate from temp")
-df.registerTempTable("temp")
-
-<<<<<<< HEAD
 # Use sparkSQL to read in CSV
 df = (spark.read
         .format("com.databricks.spark.csv")
@@ -114,6 +103,11 @@ startDate = "01-01-2009"
 endDate = "01-01-2017"
 region = "DUK"
 print("hello")
+df5 = spark.sql("SELECT BA, TimeAndDate, Demand, Year from temp where BA = 'DUK'")
+
+
+
+
 #regionDataframe()
 #Query = spark.sql("SELECT Year(TimeAndDate), Month(TimeAndDate), weekOfYear(TimeAndDate), Hour(TimeAndDate), Demand from temp where TimeAndDate between '"+startDate+"' and '"+endDate+"' and BA = '"+region+"'")
 #Query.show(10)
