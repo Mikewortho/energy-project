@@ -86,24 +86,14 @@ sc = pyspark.SparkContext.getOrCreate()
 spark = SQLContext(sc) 
 
 # Use sparkSQL to read in CSV
-df = (spark.read
-        .format("com.databricks.spark.csv")
-        .option("header", "true")
-        .load("data/elec_demand_hourly.csv"))
+df = spark.read.csv("newTable.csv", header=True, inferSchema=True)
 df2 = spark.read.csv("temp.csv", header=True, inferSchema=True)
 df3 = spark.read.csv("temp3.csv", header=True, inferSchema=True)
 df3.registerTempTable("temp3")
 df.registerTempTable("temp")
 df2.registerTempTable("temp2")
 
-# Register temporary table including DateTime representation of columns
-df = spark.sql("SELECT BA, CAST(Demand as int), CAST(Hour as int), CAST(Day as int), CAST(Month as int), CAST(Year as int), CAST(Weekday as int), CAST(CONCAT( Year, '-', Month, '-', Day, ' ', Hour ) as timestamp) as TimeAndDate from temp")
-df.registerTempTable("temp")
-startDate = "01-01-2009"
-endDate = "01-01-2017"
-region = "DUK"
-print("hello")
-df5 = spark.sql("SELECT BA, TimeAndDate, Demand, Year from temp where BA = 'DUK'")
+
 
 
 
