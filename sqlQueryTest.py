@@ -5,7 +5,7 @@ import zlib
 
 # extracts data between two dates
 def extractDate(startDate, endDate):
-    return spark.sql("SELECT * from temp where TimeAndDate BETWEEN '" + startDate+ "' AND '" + endDate + "' ORDER BY TimeAndDate ASC")
+    return spark.sql("SELECT * from demands where TimeAndDate BETWEEN '" + startDate+ "' AND '" + endDate + "' ORDER BY TimeAndDate ASC")
 
 #aggragates hourly data into days (Average)(BETWEEN dates)
 def aggtoDay(startDate, endDate):
