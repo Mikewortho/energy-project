@@ -5,7 +5,7 @@ import zlib
 
 # extracts data between two dates
 def extractDate(startDate, endDate):
-    return spark.sql("SELECT * from temp where TimeAndDate BETWEEN '" + startDate+ "' AND '" + endDate + "' ORDER BY TimeAndDate ASC")
+    return spark.sql("SELECT * from demands where TimeAndDate BETWEEN '" + startDate+ "' AND '" + endDate + "' ORDER BY TimeAndDate ASC")
 
 #aggragates hourly data into days (Average)(BETWEEN dates)
 def aggtoDay(startDate, endDate):
@@ -61,46 +61,63 @@ def getMissingDates():
     sample2 = dftemp.take(dftemp.count())
     listOfDataframes = []
     for BA, ENDTIME, STARTTIME in sample2:
-        tempList = []
-        tempList.append(spark.sql("Select TimeAndDate from (Select * from demands where TimeAndDate<'"+str(ENDTIME)+"' AND TimeAndDate>'"+str(STARTTIME)+"') NATURAL LEFT JOIN (Select BA, TimeAndDate from demands where BA='"+BA+"') AS L WHERE BA IS NULL "))
-        tempList.append(BA)
-        listOfDataframes.append(tempList)
+        listOfDataframes.append(spark.sql("Select '"+BA+"' as BA, TimeAndDate from (Select * from dates where TimeAndDate<'"+str(ENDTIME)+"' AND TimeAndDate>'"+str(STARTTIME)+"') NATURAL LEFT JOIN (Select BA, TimeAndDate from demands where BA='"+BA+"') AS L WHERE BA IS NULL "))
     return listOfDataframes
 
-# Method that returns outliers in lists for each BA, outlier = 4 * std away from mean
-def getOutliers():
-    authorities = spark.sql("SELECT DISTINCT BA from demands").collect()
-    ba_demands = []
-    outliers = []
-    for row in range(len(authorities)):
-        val = authorities[row]
-        ba_demands.append(spark.sql("SELECT Demand, TimeAndDate, BA FROM demands WHERE BA = '%s'" % val))
-    for ba in range(len(ba_demands)):
-        print(str(authorities[ba]) + ":" + str(ba) + " / " +  str(len(ba_demands)))
-        ba_demands[ba].registerTempTable("demand_table")
-        mean = ba_demands[ba].select(avg(ba_demands[0]["Demand"])).collect()
-        std = ba_demands[ba].select(stddev_pop(ba_demands[0]["Demand"])).collect()        
-        lower_bounds = mean[0][0] - 5 * std[0][0]
-        upper_bounds = mean[0][0] + 5 * std[0][0]  
-        o = spark.sql("SELECT Demand, TimeAndDate, BA FROM demand_table WHERE demand > {0} OR demand < {1} OR demand < 0 OR demand = 0".format(upper_bounds, lower_bounds))
-        outliers.append(o)
-    return outliers
+
+
+def getOutliersImproved():
+    dftemp = spark.sql("Select BA, MEAN(Demand) Mean , STD(Demand) STD from demands GROUP BY BA").collect()
+    listOfDataframes = []
+    for BA, Mean, STD in dftemp:
+        lower_bounds = Mean - 5 * STD
+        upper_bounds = Mean + 5 * STD
+        listOfDataframes.append(spark.sql("Select BA, TimeAndDate from (Select * from demands where (demand > {0} OR demand < {1} OR demand < 0 OR demand = 0) and BA = '{2}')".format(upper_bounds, lower_bounds, BA)))
+    return listOfDataframes
 
 # Aggregate into regions
 def regionDataframe():
-    regions = spark.sql("Select BA, Name, TimeZone, Region, Name, AVG(Demand) Demand from (Select * from demands natural join regions) group by BA, Name, TimeZone, Region, Name").show(59)
+    regions = spark.sql("Select Region, AVG(Demand) Demand, TimeAndDate from (Select * from demands natural join regions) group by Region, TimeAndDate").show(59)
     return regions
 
+def createQueryToDataframeHourBA(model, startDate, endDate):
+    return spark.sql("SELECT BA, TimeAndDate, Demand from demands where TimeAndDate BETWEEN '" + startDate+ "' AND '" + endDate + "'")
+
+def createQueryToDataframeYearBA(model, startDate, endDate):
+    return spark.sql("SELECT BA, CAST(CONCAT(Year(Date)) as timestamp) TimeAndDate, AVG(Demand) Demand from (SELECT BA, Demand, TimeAndDate as Date from "+model+" where Demand IS NOT NULL AND TimeAndDate BETWEEN '"+startDate+"' AND '"+endDate+"')  GROUP BY Year(Date), BA")#.repartition(1).write.csv("data/AggragatedToYears.csv")
+
+def createQueryToDataframeMonthBA(model, startDate, endDate):
+    return spark.sql("SELECT BA, CAST(CONCAT(Year(Date), '-', Month(Date)) as timestamp) TimeAndDate, AVG(Demand) Demand from (SELECT BA, Demand, TimeAndDate as Date from "+model+" where Demand IS NOT NULL AND TimeAndDate BETWEEN '"+startDate+"' AND '"+endDate+"') GROUP BY Month(Date),Year(Date),BA" )#.repartition(1).write.csv("data/AggragatedToMonths.csv")
+
+def createQueryToDataframeDayBA(model, startDate, endDate):
+    return spark.sql("SELECT BA, Date as TimeAndDate, AVG(Demand) Demand from (SELECT BA, Demand, DATE(TimeAndDate) as Date from "+model+" where Demand IS NOT NULL AND TimeAndDate BETWEEN '"+startDate+"' AND '"+endDate+"') GROUP BY TimeAndDate, BA" )
+
+def createQueryToDataframeWeekBA(model, startDate, endDate):
+    return spark.sql("SELECT BA, CONCAT(Year(Date),'-',weekofyear(Date)) TimeAndDate ,AVG(Demand) Demand from (SELECT BA, Demand, TimeAndDate as Date from "+model+" where Demand IS NOT NULL AND TimeAndDate BETWEEN '"+startDate+"' AND '"+endDate+"') GROUP BY weekofyear(Date), Year(Date), BA" )#.repartition(1).write.csv("data/AggragatedToWeeks.csv")
+
+def createDataframeBA(timeUnit, model, startDate, endDate):
+    if(timeUnit=="h"): return createQueryToDataframeHourBA(model, startDate, endDate)
+    elif(timeUnit=="d"): return createQueryToDataframeDayBA(model, startDate, endDate)
+    elif(timeUnit=="w"): return createQueryToDataframeWeekBA(model, startDate, endDate)
+    elif(timeUnit=="m"): return createQueryToDataframeMonthBA(model, startDate, endDate)
+    elif(timeUnit=="y"): return createQueryToDataframeYearBA(model, startDate, endDate)
+    print("invalid timeunit given in createDataFrame. %s"%timeUnit)
+    return
+
 #Turn a dataframe containing TimeAndDate, Demand as well as BA into a Json and compress's it using zlib
-def turnDataframeIntoJson(df5):
-    df = df5.rdd
-    tcp_interactions_out = df.map(lambda df: '{\"BA\":\"%s\",\"TimeAndDate\":\"%s\",\"Demand\":%s}' % (df.BA, df.TimeAndDate, df.Demand))
-    temp = tcp_interactions_out.collect()
-    sendString=''
-    for temp2 in temp:
-        sendString += temp2+'\n'
-    compressedJson = zlib.compress(sendString.encode())
-    return(compressedJson)
+#Takes perams timeUnit("d","w","h","m","y"), model("demands","forecasts")
+def turnDataframeIntoJson(ByBAOrState, timeUnit, model, startDate, endDate):
+    if(ByBAOrState=="BA"):
+        df = createDataframeBA(timeUnit,model,startDate,endDate).rdd
+        tcp_interactions_out = df.map(lambda df: '{\"BA\":\"%s\",\"TimeAndDate\":\"%s\",\"Demand\":%s}' % (df.BA, df.TimeAndDate, df.Demand))
+        temp = tcp_interactions_out.collect()
+        sendString=''
+        for temp2 in temp:
+            sendString += temp2+'\n'
+        #compressedJson = zlib.compress(sendString.encode())
+        return(sendString)
+    else:
+        return("")
     
 # Create spark context and sparkSQL objects
 sc = pyspark.SparkContext.getOrCreate()
@@ -115,6 +132,10 @@ region_table.registerTempTable("regions")
 demand_table.registerTempTable("demands")
 date_table.registerTempTable("dates")
 forecast_table.registerTempTable("forecasts")
+#date_table.printSchema()
+temp1 = getOutliersImproved()[1].show(5)
+temp2 = getMissingDates()[1].show(5)
+
 
 
 # Ensure previous spark context has closed (Will fix this)

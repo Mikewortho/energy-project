@@ -62,11 +62,12 @@ class APIHandler:
             r = requests.get(request)
             x = r.json()
             for i in range(len(x["series"][0]["data"])):
-                date = str(x["series"][0]["data"][i][0]) + ":00:00.000"
-                year = date[:4]
-                month = date[4:6]
-                day = date[6:8]
-                hour = date[9:11]
+                tempDate = str(x["series"][0]["data"][i][0])
+                year = tempDate[:4]
+                month = tempDate[4:6]
+                day = tempDate[6:8]
+                hour = tempDate[9:11]
+                date = year +"-"+month+"-"+day+"T"+hour+":00:00.000Z"
                 weekday = datetime.date(int(year), int(month), int(day)).weekday()
                 demand = str(x["series"][0]["data"][i][1])
                 if(ba != "EEI" and ba != "WWA"):
@@ -81,11 +82,12 @@ class APIHandler:
             r = requests.get(request)
             x = r.json()
             for i in range(len(x["series"][0]["data"])):
-                date = str(x["series"][0]["data"][i][0]) + ":00:00.000"
-                year = date[:4]
-                month = date[4:6]
-                day = date[6:8]
-                hour = date[9:11]
+                tempDate = str(x["series"][0]["data"][i][0])
+                year = tempDate[:4]
+                month = tempDate[4:6]
+                day = tempDate[6:8]
+                hour = tempDate[9:11]
+                date = year +"-"+month+"-"+day+"T"+hour+":00:00.000Z"
                 weekday = datetime.date(int(year), int(month), int(day)).weekday()
                 demand = str(x["series"][0]["data"][i][1])
                 if(ba != "EEI" and ba != "WWA"):
