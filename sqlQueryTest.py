@@ -2,6 +2,10 @@ import pyspark
 from pyspark.sql.functions import avg, stddev_pop
 from pyspark.sql import SQLContext       
 import zlib
+from pyspark.sql.types import StructType
+from pyspark.sql.types import StructField
+from pyspark.sql.types import TimestampType
+from pyspark.sql.types import StringType
 
 # extracts data between two dates
 def extractDate(startDate, endDate):
@@ -58,13 +62,40 @@ def foldsSplit(k, fullData):
 # Method to get missing dates for each BA, returns a list of format [[Dataframe(of missing dates for BA), BA],[Dataframe(of missing dates for BA), BA]......]
 def getMissingDates():
     dftemp = spark.sql("Select BA, MAX(TimeAndDate) max ,Min(TimeAndDate) min from demands GROUP BY BA")
-    sample2 = dftemp.take(dftemp.count())
+    sample2 = dftemp.collect()
     listOfDataframes = []
     for BA, ENDTIME, STARTTIME in sample2:
         listOfDataframes.append(spark.sql("Select '"+BA+"' as BA, TimeAndDate from (Select * from dates where TimeAndDate<'"+str(ENDTIME)+"' AND TimeAndDate>'"+str(STARTTIME)+"') NATURAL LEFT JOIN (Select BA, TimeAndDate from demands where BA='"+BA+"') AS L WHERE BA IS NULL "))
     return listOfDataframes
 
 
+#Concat method
+## Method to get missing dates for each BA, returns a list of format [[Dataframe(of missing dates for BA), BA],[Dataframe(of missing dates for BA), BA]......]
+#def getMissingDates():
+#    dftemp = spark.sql("Select BA, MAX(TimeAndDate) max ,Min(TimeAndDate) min from demands GROUP BY BA")
+#    sample2 = dftemp.collect()
+#    query = ""
+#    firstLine = True
+#    for BA, ENDTIME, STARTTIME in sample2:
+#        if(firstLine==True):
+#            query += "Select '"+BA+"' as BA, TimeAndDate from (Select * from dates where TimeAndDate<'"+str(ENDTIME)+"' AND TimeAndDate>'"+str(STARTTIME)+"') NATURAL LEFT JOIN (Select BA, TimeAndDate from demands where BA='"+BA+"') AS L WHERE BA IS NULL "
+#            firstLine = False
+#        else:
+#            query += "union all Select '"+BA+"' as BA, TimeAndDate from (Select * from dates where TimeAndDate<'"+str(ENDTIME)+"' AND TimeAndDate>'"+str(STARTTIME)+"') NATURAL LEFT JOIN (Select BA, TimeAndDate from demands where BA='"+BA+"') AS L WHERE BA IS NULL "
+#    letsSee = spark.sql(query)
+#    return letsSee
+
+#Union method.
+## Method to get missing dates for each BA, returns a list of format [[Dataframe(of missing dates for BA), BA],[Dataframe(of missing dates for BA), BA]......]
+#def getMissingDates():
+#    dftemp = spark.sql("Select BA, MAX(TimeAndDate) max ,Min(TimeAndDate) min from demands GROUP BY BA")
+#    sample2 = dftemp.collect()
+#    field = [StructField("BA", StringType(), True),StructField("TimeAndDate", TimestampType(), True)]
+#    schema = StructType(field)
+#    df = spark.createDataFrame([],schema)
+#    for BA, ENDTIME, STARTTIME in sample2:
+#        df = df.unionAll(spark.sql("Select '"+BA+"' as BA, TimeAndDate from (Select * from dates where TimeAndDate<'"+str(ENDTIME)+"' AND TimeAndDate>'"+str(STARTTIME)+"') NATURAL LEFT JOIN (Select BA, TimeAndDate from demands where BA='"+BA+"') AS L WHERE BA IS NULL "))
+#    return df
 
 def getOutliersImproved():
     dftemp = spark.sql("Select BA, MEAN(Demand) Mean , STD(Demand) STD from demands GROUP BY BA").collect()
