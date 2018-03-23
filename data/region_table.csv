@@ -1,4 +1,4 @@
-BA,Demand_API,Name,TimeZone,Region,State 
+BA,Demand_API,Name,TimeZone,Region,State
 DUK,"""EBA.DUK-ALL.D.H""",Duke Energy Carolinas,Eastern,Carolinas,North Carolina
 GCPD,"""EBA.GCPD-ALL.D.H""","Public Utility District No. 2 of Grant County, Washington",Pacific,Northwest,Washington
 TAL,"""EBA.TAL-ALL.D.H""","Tallahassee, City of",Eastern,Florida,Florida
