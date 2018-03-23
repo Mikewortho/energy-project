@@ -1,59 +1,59 @@
-BA,Demand_API,Name,TimeZone,Region
-DUK,"""EBA.DUK-ALL.D.H""",Duke Energy Carolinas,Eastern,Carolinas
-GCPD,"""EBA.GCPD-ALL.D.H""","Public Utility District No. 2 of Grant County, Washington",Pacific,Northwest
-TAL,"""EBA.TAL-ALL.D.H""","Tallahassee, City of",Eastern,Florida
-SEC,"""EBA.SEC-ALL.D.H""",Seminole Electric Cooperative,Eastern,Florida
-SCEG,"""EBA.SCEG-ALL.D.H""",South Carolina Electric & Gas Company,Eastern,Carolinas
-CPLW,"""EBA.CPLW-ALL.D.H""",Duke Energy Progress West,Eastern,Carolinas
-CISO,"""EBA.CISO-ALL.D.H""",California Independent System Operator,Pacific,California
-EEI,"""EBA.EEI-ALL.D.H""","Electric Energy, Inc.",Central,Midwest
-FPC,"""EBA.FPC-ALL.D.H""","Duke Energy Florida, Inc.",Eastern,Florida
-TPWR,"""EBA.TPWR-ALL.D.H""","City of Tacoma, Department of Public Utilities, Light Division",Pacific,Northwest
-AZPS,"""EBA.AZPS-ALL.D.H""",Arizona Public Service Company,Arizona,Southwest
-LDWP,"""EBA.LDWP-ALL.D.H""",Los Angeles Department of Water and Power,Pacific,California
-AVA,"""EBA.AVA-ALL.D.H""",Avista Corporation,Pacific,Northwest
-OVEC,"""EBA.OVEC-ALL.D.H""",Ohio Valley Electric Corporation,Eastern,Mid-Atlantic
-PSCO,"""EBA.PSCO-ALL.D.H""",Public Service Company of Colorado,Mountain,Northwest
-SOCO,"""EBA.SOCO-ALL.D.H""","Southern Company Services, Inc. - Trans",Central,Southeast
-CHPD,"""EBA.CHPD-ALL.D.H""",Public Utility District No. 1 of Chelan County,Pacific,Northwest
-JEA,"""EBA.JEA-ALL.D.H""","JEA (Jacksonville, FL)",Eastern,Florida
-WWA,"""EBA.WWA-ALL.D.H""","NaturEner Wind Watch, LLC",Mountain,Northwest
-TEPC,"""EBA.TEPC-ALL.D.H""",Tucson Electric Power,Arizona,Southwest
-WALC,"""EBA.WALC-ALL.D.H""",Western Area Power Administration - Desert Southwest Region,Arizona,Southwest
-PACE,"""EBA.PACE-ALL.D.H""",PacifiCorp East,Mountain,Northwest
-CPLE,"""EBA.CPLE-ALL.D.H""",Duke Energy Progress East,Eastern,Carolinas
-SCL,"""EBA.SCL-ALL.D.H""",Seattle City Light,Pacific,Northwest
-IID,"""EBA.IID-ALL.D.H""",Imperial Irrigation District,Pacific,California
-TVA,"""EBA.TVA-ALL.D.H""",Tennessee Valley Authority,Central,Tennessee Valley Authority 
-NYIS,"""EBA.NYIS-ALL.D.H""",New York Independent System Operator,Eastern,New York Independent System Operator
-EPE,"""EBA.EPE-ALL.D.H""",El Paso Electric Company,Arizona,Southwest
-MISO,"""EBA.MISO-ALL.D.H""","Midcontinent Independent System Operator, Inc.",Eastern Standard,Midwest
-FPL,"""EBA.FPL-ALL.D.H""",Florida Power & Light Co.,Eastern,Florida
-BANC,"""EBA.BANC-ALL.D.H""",Balancing Authority of Northern California,Pacific,California
-PNM,"""EBA.PNM-ALL.D.H""",Public Service Company of New Mexico,Arizona,Southwest
-LGEE,"""EBA.LGEE-ALL.D.H""",LG&E and KU Services Company as agent for Louisville Gas and Electric Company and Kentucky Utilities Company,Central Standard,Midwest
-HST,"""EBA.HST-ALL.D.H""","Homestead, City of",Eastern,Florida
-IPCO,"""EBA.IPCO-ALL.D.H""",Idaho Power Company,Pacific,Northwest
-PACW,"""EBA.PACW-ALL.D.H""",PacifiCorp West,Pacific,Northwest
-NSB,"""EBA.NSB-ALL.D.H""","New Smyrna Beach, Utilities Commission of",Eastern,Florida
-FMPP,"""EBA.FMPP-ALL.D.H""",Florida Municipal Power Pool,Eastern,Florida
-TIDC,"""EBA.TIDC-ALL.D.H""",Turlock Irrigation District,Pacific,California
-NEVP,"""EBA.NEVP-ALL.D.H""",Nevada Power Company,Pacific,Northwest
-SWPP,"""EBA.SWPP-ALL.D.H""",Southwest Power Pool,Central,Central
-WAUW,"""EBA.WAUW-ALL.D.H""",Western Area Power Administration - Upper Great Plains West,Mountain,Northwest
-ISNE,"""EBA.ISNE-ALL.D.H""",New England ISO,Eastern,New England ISO
-PGE,"""EBA.PGE-ALL.D.H""",Portland General Electric Company,Pacific,Northwest
-SPA,"""EBA.SPA-ALL.D.H""",Southwestern Power Administration,Central,Central
-TEC,"""EBA.TEC-ALL.D.H""",Tampa Electric Company,Eastern,Florida
-SC,"""EBA.SC-ALL.D.H""",South Carolina Public Service Authority,Eastern,Carolinas
-PJM,"""EBA.PJM-ALL.D.H""","PJM Interconnection, LLC",Eastern,Mid-Atlantic
-DOPD,"""EBA.DOPD-ALL.D.H""",PUD No. 1 of Douglas County,Pacific,Northwest
-NWMT,"""EBA.NWMT-ALL.D.H""",NorthWestern Corporation,Mountain,Northwest
-SRP,"""EBA.SRP-ALL.D.H""",Salt River Project Agricultural Improvement and Power District,Arizona,Southwest
-ERCO,"""EBA.ERCO-ALL.D.H""","Electric Reliability Council of Texas, Inc.",Central,"Electric Reliabality Council of Texas, Inc."
-WACM,"""EBA.WACM-ALL.D.H""",Western Area Power Administration - Rocky Mountain Region,Arizona,Northwest
-GVL,"""EBA.GVL-ALL.D.H""",Gainesville Regional Utilities,Eastern,Florida
-PSEI,"""EBA.PSEI-ALL.D.H""","Puget Sound Energy, Inc.",Pacific,Northwest
-AECI,"""EBA.AECI-ALL.D.H""","Associated Electric Cooperative, Inc.",Central,Midwest
-BPAT,"""EBA.BPAT-ALL.D.H""",Bonneville Power Administration,Pacific,Northwest
-AEC,"""EBA.AEC-ALL.D.H""",PowerSouth Energy Cooperative,Central,Southeast
+BA,Demand_API,Name,TimeZone,Region,State
+DUK,"""EBA.DUK-ALL.D.H""",Duke Energy Carolinas,Eastern,Carolinas,North Carolina
+GCPD,"""EBA.GCPD-ALL.D.H""","Public Utility District No. 2 of Grant County, Washington",Pacific,Northwest,Washington
+TAL,"""EBA.TAL-ALL.D.H""","Tallahassee, City of",Eastern,Florida,Florida
+SEC,"""EBA.SEC-ALL.D.H""",Seminole Electric Cooperative,Eastern,Florida,Florida
+SCEG,"""EBA.SCEG-ALL.D.H""",South Carolina Electric & Gas Company,Eastern,Carolinas,South Carolina
+CPLW,"""EBA.CPLW-ALL.D.H""",Duke Energy Progress West,Eastern,Carolinas,North Carolina
+CISO,"""EBA.CISO-ALL.D.H""",California Independent System Operator,Pacific,California,California
+EEI,"""EBA.EEI-ALL.D.H""","Electric Energy, Inc.",Central,Midwest,Illinois
+FPC,"""EBA.FPC-ALL.D.H""","Duke Energy Florida, Inc.",Eastern,Florida,Florida
+TPWR,"""EBA.TPWR-ALL.D.H""","City of Tacoma, Department of Public Utilities, Light Division",Pacific,Northwest,Washington
+AZPS,"""EBA.AZPS-ALL.D.H""",Arizona Public Service Company,Arizona,Southwest,Arizona
+LDWP,"""EBA.LDWP-ALL.D.H""",Los Angeles Department of Water and Power,Pacific,California,California
+AVA,"""EBA.AVA-ALL.D.H""",Avista Corporation,Pacific,Northwest,Washington
+OVEC,"""EBA.OVEC-ALL.D.H""",Ohio Valley Electric Corporation,Eastern,Mid-Atlantic,Ohio
+PSCO,"""EBA.PSCO-ALL.D.H""",Public Service Company of Colorado,Mountain,Northwest,Colorado
+SOCO,"""EBA.SOCO-ALL.D.H""","Southern Company Services, Inc. - Trans",Central,Southeast,Georgia
+CHPD,"""EBA.CHPD-ALL.D.H""",Public Utility District No. 1 of Chelan County,Pacific,Northwest,Washington
+JEA,"""EBA.JEA-ALL.D.H""","JEA (Jacksonville, FL)",Eastern,Florida,Florida
+WWA,"""EBA.WWA-ALL.D.H""","NaturEner Wind Watch, LLC",Mountain,Northwest,California
+TEPC,"""EBA.TEPC-ALL.D.H""",Tucson Electric Power,Arizona,Southwest,Arizona
+WALC,"""EBA.WALC-ALL.D.H""",Western Area Power Administration - Desert Southwest Region,Arizona,Southwest,Arizona
+PACE,"""EBA.PACE-ALL.D.H""",PacifiCorp East,Mountain,Northwest,Oregon
+CPLE,"""EBA.CPLE-ALL.D.H""",Duke Energy Progress East,Eastern,Carolinas,North Carolina
+SCL,"""EBA.SCL-ALL.D.H""",Seattle City Light,Pacific,Northwest,Washington
+IID,"""EBA.IID-ALL.D.H""",Imperial Irrigation District,Pacific,California,California
+TVA,"""EBA.TVA-ALL.D.H""",Tennessee Valley Authority,Central,Tennessee Valley Authority ,Tennessee
+NYIS,"""EBA.NYIS-ALL.D.H""",New York Independent System Operator,Eastern,New York Independent System Operator,New York
+EPE,"""EBA.EPE-ALL.D.H""",El Paso Electric Company,Arizona,Southwest,Texas
+MISO,"""EBA.MISO-ALL.D.H""","Midcontinent Independent System Operator, Inc.",Eastern Standard,Midwest,Minnesota
+FPL,"""EBA.FPL-ALL.D.H""",Florida Power & Light Co.,Eastern,Florida,Florida
+BANC,"""EBA.BANC-ALL.D.H""",Balancing Authority of Northern California,Pacific,California,California
+PNM,"""EBA.PNM-ALL.D.H""",Public Service Company of New Mexico,Arizona,Southwest,New Mexico
+LGEE,"""EBA.LGEE-ALL.D.H""",LG&E and KU Services Company as agent for Louisville Gas and Electric Company and Kentucky Utilities Company,Central Standard,Midwest,Kentucky
+HST,"""EBA.HST-ALL.D.H""","Homestead, City of",Eastern,Florida,Florida
+IPCO,"""EBA.IPCO-ALL.D.H""",Idaho Power Company,Pacific,Northwest,Idaho
+PACW,"""EBA.PACW-ALL.D.H""",PacifiCorp West,Pacific,Northwest,Oregon
+NSB,"""EBA.NSB-ALL.D.H""","New Smyrna Beach, Utilities Commission of",Eastern,Florida,Florida
+FMPP,"""EBA.FMPP-ALL.D.H""",Florida Municipal Power Pool,Eastern,Florida,Florida
+TIDC,"""EBA.TIDC-ALL.D.H""",Turlock Irrigation District,Pacific,California,California
+NEVP,"""EBA.NEVP-ALL.D.H""",Nevada Power Company,Pacific,Northwest,Nevada
+SWPP,"""EBA.SWPP-ALL.D.H""",Southwest Power Pool,Central,Central,Arizona
+WAUW,"""EBA.WAUW-ALL.D.H""",Western Area Power Administration - Upper Great Plains West,Mountain,Northwest,Colorado
+ISNE,"""EBA.ISNE-ALL.D.H""",New England ISO,Eastern,New England ISO,Massachusetts
+PGE,"""EBA.PGE-ALL.D.H""",Portland General Electric Company,Pacific,Northwest,Oregon
+SPA,"""EBA.SPA-ALL.D.H""",Southwestern Power Administration,Central,Central,Oklahoma
+TEC,"""EBA.TEC-ALL.D.H""",Tampa Electric Company,Eastern,Florida,Florida
+SC,"""EBA.SC-ALL.D.H""",South Carolina Public Service Authority,Eastern,Carolinas,South Carolina
+PJM,"""EBA.PJM-ALL.D.H""","PJM Interconnection, LLC",Eastern,Mid-Atlantic,Pennsylvania
+DOPD,"""EBA.DOPD-ALL.D.H""",PUD No. 1 of Douglas County,Pacific,Northwest,Washington
+NWMT,"""EBA.NWMT-ALL.D.H""",NorthWestern Corporation,Mountain,Northwest,South Dakota
+SRP,"""EBA.SRP-ALL.D.H""",Salt River Project Agricultural Improvement and Power District,Arizona,Southwest,Arizona
+ERCO,"""EBA.ERCO-ALL.D.H""","Electric Reliability Council of Texas, Inc.",Central,"Electric Reliabality Council of Texas, Inc.",Texas
+WACM,"""EBA.WACM-ALL.D.H""",Western Area Power Administration - Rocky Mountain Region,Arizona,Northwest,Colorado
+GVL,"""EBA.GVL-ALL.D.H""",Gainesville Regional Utilities,Eastern,Florida,Florida
+PSEI,"""EBA.PSEI-ALL.D.H""","Puget Sound Energy, Inc.",Pacific,Northwest,Washington
+AECI,"""EBA.AECI-ALL.D.H""","Associated Electric Cooperative, Inc.",Central,Midwest,Missouri
+BPAT,"""EBA.BPAT-ALL.D.H""",Bonneville Power Administration,Pacific,Northwest,Oregon
+AEC,"""EBA.AEC-ALL.D.H""",PowerSouth Energy Cooperative,Central,Southeast,Alabama
