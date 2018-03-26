@@ -111,8 +111,14 @@ def regionDataframe():
     regions = spark.sql("Select Region, AVG(Demand) Demand, TimeAndDate from (Select * from demands natural join regions) group by Region, TimeAndDate").show(59)
     return regions
 
+
+
+
+
+
+
 def createQueryToDataframeHourBA(model, startDate, endDate):
-    return spark.sql("SELECT BA, TimeAndDate, Demand from demands where TimeAndDate BETWEEN '" + startDate+ "' AND '" + endDate + "'")
+    return spark.sql("SELECT BA, TimeAndDate, Demand from "+model+" where TimeAndDate BETWEEN '" + startDate+ "' AND '" + endDate + "'")
 
 def createQueryToDataframeYearBA(model, startDate, endDate):
     return spark.sql("SELECT BA, CAST(CONCAT(Year(Date)) as timestamp) TimeAndDate, AVG(Demand) Demand from (SELECT BA, Demand, TimeAndDate as Date from "+model+" where Demand IS NOT NULL AND TimeAndDate BETWEEN '"+startDate+"' AND '"+endDate+"')  GROUP BY Year(Date), BA")#.repartition(1).write.csv("data/AggragatedToYears.csv")
@@ -126,6 +132,36 @@ def createQueryToDataframeDayBA(model, startDate, endDate):
 def createQueryToDataframeWeekBA(model, startDate, endDate):
     return spark.sql("SELECT BA, CONCAT(Year(Date),'-',weekofyear(Date)) TimeAndDate ,AVG(Demand) Demand from (SELECT BA, Demand, TimeAndDate as Date from "+model+" where Demand IS NOT NULL AND TimeAndDate BETWEEN '"+startDate+"' AND '"+endDate+"') GROUP BY weekofyear(Date), Year(Date), BA" )#.repartition(1).write.csv("data/AggragatedToWeeks.csv")
 
+def createQueryToDataframeHourRegion(model, startDate, endDate):
+    return spark.sql("SELECT Region, TimeAndDate, AVG(Demand) Demand from "+model+" natural join regions where TimeAndDate BETWEEN '" + startDate+ "' AND '" + endDate + "' Group by Region, TimeAndDate")
+
+def createQueryToDataframeYearRegion(model, startDate, endDate):
+    return spark.sql("SELECT Region, CAST(CONCAT(Year(Date)) as timestamp) TimeAndDate, AVG(Demand) Demand from (SELECT Region, Demand, TimeAndDate as Date from "+model+" natural join regions where Demand IS NOT NULL AND TimeAndDate BETWEEN '"+startDate+"' AND '"+endDate+"')  GROUP BY Year(Date), Region")#.repartition(1).write.csv("data/AggragatedToYears.csv")
+
+def createQueryToDataframeMonthRegion(model, startDate, endDate):
+    return spark.sql("SELECT Region, CAST(CONCAT(Year(Date), '-', Month(Date)) as timestamp) TimeAndDate, AVG(Demand) Demand from (SELECT Region, Demand, TimeAndDate as Date from "+model+" natural join regions where Demand IS NOT NULL AND TimeAndDate BETWEEN '"+startDate+"' AND '"+endDate+"') GROUP BY Month(Date),Year(Date), Region" )#.repartition(1).write.csv("data/AggragatedToMonths.csv")
+
+def createQueryToDataframeDayRegion(model, startDate, endDate):
+    return spark.sql("SELECT Region, Date as TimeAndDate, AVG(Demand) Demand from (SELECT Region, Demand, DATE(TimeAndDate) as Date from "+model+" natural join regions where Demand IS NOT NULL AND TimeAndDate BETWEEN '"+startDate+"' AND '"+endDate+"') GROUP BY TimeAndDate, Region" )
+
+def createQueryToDataframeWeekRegion(model, startDate, endDate):
+    return spark.sql("SELECT Region, CONCAT(Year(Date),'-',weekofyear(Date)) TimeAndDate ,AVG(Demand) Demand from (SELECT Region, Demand, TimeAndDate as Date from "+model+" natural join regions where Demand IS NOT NULL AND TimeAndDate BETWEEN '"+startDate+"' AND '"+endDate+"') GROUP BY weekofyear(Date), Year(Date), Region" )#.repartition(1).write.csv("data/AggragatedToWeeks.csv")
+
+def createQueryToDataframeHourState(model, startDate, endDate):
+    return spark.sql("SELECT State, TimeAndDate, AVG(Demand) Demand from "+model+" natural join regions where TimeAndDate BETWEEN '" + startDate+ "' AND '" + endDate + "' Group by State, TimeAndDate")
+
+def createQueryToDataframeYearState(model, startDate, endDate):
+    return spark.sql("SELECT State, CAST(CONCAT(Year(Date)) as timestamp) TimeAndDate, AVG(Demand) Demand from (SELECT State, Demand, TimeAndDate as Date from "+model+" natural join regions where Demand IS NOT NULL AND TimeAndDate BETWEEN '"+startDate+"' AND '"+endDate+"')  GROUP BY Year(Date), State")#.repartition(1).write.csv("data/AggragatedToYears.csv")
+
+def createQueryToDataframeMonthState(model, startDate, endDate):
+    return spark.sql("SELECT State, CAST(CONCAT(Year(Date), '-', Month(Date)) as timestamp) TimeAndDate, AVG(Demand) Demand from (SELECT State, Demand, TimeAndDate as Date from "+model+" natural join regions where Demand IS NOT NULL AND TimeAndDate BETWEEN '"+startDate+"' AND '"+endDate+"') GROUP BY Month(Date),Year(Date), State" )#.repartition(1).write.csv("data/AggragatedToMonths.csv")
+
+def createQueryToDataframeDayState(model, startDate, endDate):
+    return spark.sql("SELECT State, Date as TimeAndDate, AVG(Demand) Demand from (SELECT State, Demand, DATE(TimeAndDate) as Date from "+model+" natural join regions where Demand IS NOT NULL AND TimeAndDate BETWEEN '"+startDate+"' AND '"+endDate+"') GROUP BY TimeAndDate, State" )
+
+def createQueryToDataframeWeekState(model, startDate, endDate):
+    return spark.sql("SELECT State, CONCAT(Year(Date),'-',weekofyear(Date)) TimeAndDate ,AVG(Demand) Demand from (SELECT State, Demand, TimeAndDate as Date from "+model+" natural join regions where Demand IS NOT NULL AND TimeAndDate BETWEEN '"+startDate+"' AND '"+endDate+"') GROUP BY weekofyear(Date), Year(Date), State" )#.repartition(1).write.csv("data/AggragatedToWeeks.csv")
+
 def createDataframeBA(timeUnit, model, startDate, endDate):
     if(timeUnit=="h"): return createQueryToDataframeHourBA(model, startDate, endDate)
     elif(timeUnit=="d"): return createQueryToDataframeDayBA(model, startDate, endDate)
@@ -135,20 +171,52 @@ def createDataframeBA(timeUnit, model, startDate, endDate):
     print("invalid timeunit given in createDataFrame. %s"%timeUnit)
     return
 
+def createDataframeRegion(timeUnit, model, startDate, endDate):
+    if(timeUnit=="h"): return createQueryToDataframeHourRegion(model, startDate, endDate)
+    elif(timeUnit=="d"): return createQueryToDataframeDayRegion(model, startDate, endDate)
+    elif(timeUnit=="w"): return createQueryToDataframeWeekRegion(model, startDate, endDate)
+    elif(timeUnit=="m"): return createQueryToDataframeMonthRegion(model, startDate, endDate)
+    elif(timeUnit=="y"): return createQueryToDataframeYearRegion(model, startDate, endDate)
+    print("invalid timeunit given in createDataFrame. %s"%timeUnit)
+    return
+
+def createDataframeState(timeUnit, model, startDate, endDate):
+    if(timeUnit=="h"): return createQueryToDataframeHourState(model, startDate, endDate)
+    elif(timeUnit=="d"): return createQueryToDataframeDayState(model, startDate, endDate)
+    elif(timeUnit=="w"): return createQueryToDataframeWeekState(model, startDate, endDate)
+    elif(timeUnit=="m"): return createQueryToDataframeMonthState(model, startDate, endDate)
+    elif(timeUnit=="y"): return createQueryToDataframeYearState(model, startDate, endDate)
+    print("invalid timeunit given in createDataFrame. %s"%timeUnit)
+    return
+
 #Turn a dataframe containing TimeAndDate, Demand as well as BA into a Json and compress's it using zlib
 #Takes perams timeUnit("d","w","h","m","y"), model("demands","forecasts")
-def turnDataframeIntoJson(ByBAOrState, timeUnit, model, startDate, endDate):
-    if(ByBAOrState=="BA"):
+def turnDataframeIntoJson(ByBaOrStateOrRegion, timeUnit, model, startDate, endDate):
+    if(ByBaOrStateOrRegion=="B"):
         df = createDataframeBA(timeUnit,model,startDate,endDate).rdd
         tcp_interactions_out = df.map(lambda df: '{\"BA\":\"%s\",\"TimeAndDate\":\"%s\",\"Demand\":%s}' % (df.BA, df.TimeAndDate, df.Demand))
         temp = tcp_interactions_out.collect()
         sendString=''
         for temp2 in temp:
             sendString += temp2+'\n'
+        return sendString
+    elif ByBaOrStateOrRegion == "R":
+        df = createDataframeRegion(timeUnit,model,startDate,endDate).rdd
+        tcp_interactions_out = df.map(lambda df: '{\"Region\":\"%s\",\"TimeAndDate\":\"%s\",\"Demand\":%s}' % (df.Region, df.TimeAndDate, df.Demand))
+        temp = tcp_interactions_out.collect()
+        sendString=''
+        for temp2 in temp:
+            sendString += temp2+'\n'
+        return sendString
+    elif ByBaOrStateOrRegion == "S":
+        df = createDataframeState(timeUnit,model,startDate,endDate).rdd
+        tcp_interactions_out = df.map(lambda df: '{\"State\":\"%s\",\"TimeAndDate\":\"%s\",\"Demand\":%s}' % (df.State, df.TimeAndDate, df.Demand))
+        temp = tcp_interactions_out.collect()
+        sendString=''
+        for temp2 in temp:
+            sendString += temp2+'\n'
         #compressedJson = zlib.compress(sendString.encode())
-        return(sendString)
-    else:
-        return("")
+        return sendString
     
 # Create spark context and sparkSQL objects
 sc = pyspark.SparkContext.getOrCreate()
@@ -163,9 +231,10 @@ region_table.registerTempTable("regions")
 demand_table.registerTempTable("demands")
 date_table.registerTempTable("dates")
 forecast_table.registerTempTable("forecasts")
+print(turnDataframeIntoJson("S","h","demands","2014","2017"))
 #date_table.printSchema()
-temp1 = getOutliersImproved()[1].show(5)
-temp2 = getMissingDates()[1].show(5)
+#temp1 = getOutliersImproved()[1].show(5)
+#temp2 = getMissingDates()[1].show(5)
 
 
 
