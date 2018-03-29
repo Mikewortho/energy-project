@@ -59,53 +59,6 @@ def foldsSplit(k, fullData):
             folds.append(temp.limit(pivot))         
     return folds
 
-# Method to get missing dates for each BA, returns a list of format [[Dataframe(of missing dates for BA), BA],[Dataframe(of missing dates for BA), BA]......]
-def getMissingDates():
-    dftemp = spark.sql("Select BA, MAX(TimeAndDate) max ,Min(TimeAndDate) min from demands GROUP BY BA")
-    sample2 = dftemp.collect()
-    listOfDataframes = []
-    for BA, ENDTIME, STARTTIME in sample2:
-        listOfDataframes.append(spark.sql("Select '"+BA+"' as BA, TimeAndDate from (Select * from dates where TimeAndDate<'"+str(ENDTIME)+"' AND TimeAndDate>'"+str(STARTTIME)+"') NATURAL LEFT JOIN (Select BA, TimeAndDate from demands where BA='"+BA+"') AS L WHERE BA IS NULL "))
-    return listOfDataframes
-
-
-#Concat method
-## Method to get missing dates for each BA, returns a list of format [[Dataframe(of missing dates for BA), BA],[Dataframe(of missing dates for BA), BA]......]
-#def getMissingDates():
-#    dftemp = spark.sql("Select BA, MAX(TimeAndDate) max ,Min(TimeAndDate) min from demands GROUP BY BA")
-#    sample2 = dftemp.collect()
-#    query = ""
-#    firstLine = True
-#    for BA, ENDTIME, STARTTIME in sample2:
-#        if(firstLine==True):
-#            query += "Select '"+BA+"' as BA, TimeAndDate from (Select * from dates where TimeAndDate<'"+str(ENDTIME)+"' AND TimeAndDate>'"+str(STARTTIME)+"') NATURAL LEFT JOIN (Select BA, TimeAndDate from demands where BA='"+BA+"') AS L WHERE BA IS NULL "
-#            firstLine = False
-#        else:
-#            query += "union all Select '"+BA+"' as BA, TimeAndDate from (Select * from dates where TimeAndDate<'"+str(ENDTIME)+"' AND TimeAndDate>'"+str(STARTTIME)+"') NATURAL LEFT JOIN (Select BA, TimeAndDate from demands where BA='"+BA+"') AS L WHERE BA IS NULL "
-#    letsSee = spark.sql(query)
-#    return letsSee
-
-#Union method.
-## Method to get missing dates for each BA, returns a list of format [[Dataframe(of missing dates for BA), BA],[Dataframe(of missing dates for BA), BA]......]
-#def getMissingDates():
-#    dftemp = spark.sql("Select BA, MAX(TimeAndDate) max ,Min(TimeAndDate) min from demands GROUP BY BA")
-#    sample2 = dftemp.collect()
-#    field = [StructField("BA", StringType(), True),StructField("TimeAndDate", TimestampType(), True)]
-#    schema = StructType(field)
-#    df = spark.createDataFrame([],schema)
-#    for BA, ENDTIME, STARTTIME in sample2:
-#        df = df.unionAll(spark.sql("Select '"+BA+"' as BA, TimeAndDate from (Select * from dates where TimeAndDate<'"+str(ENDTIME)+"' AND TimeAndDate>'"+str(STARTTIME)+"') NATURAL LEFT JOIN (Select BA, TimeAndDate from demands where BA='"+BA+"') AS L WHERE BA IS NULL "))
-#    return df
-
-def getOutliersImproved():
-    dftemp = spark.sql("Select BA, MEAN(Demand) Mean , STD(Demand) STD from demands GROUP BY BA").collect()
-    listOfDataframes = []
-    for BA, Mean, STD in dftemp:
-        lower_bounds = Mean - 5 * STD
-        upper_bounds = Mean + 5 * STD
-        listOfDataframes.append(spark.sql("Select BA, TimeAndDate from (Select * from demands where (demand > {0} OR demand < {1} OR demand < 0 OR demand = 0) and BA = '{2}')".format(upper_bounds, lower_bounds, BA)))
-    return listOfDataframes
-
 # Aggregate into regions
 def regionDataframe():
     regions = spark.sql("Select Region, AVG(Demand) Demand, TimeAndDate from (Select * from demands natural join regions) group by Region, TimeAndDate").show(59)
@@ -218,25 +171,25 @@ def turnDataframeIntoJson(ByBaOrStateOrRegion, timeUnit, model, startDate, endDa
         #compressedJson = zlib.compress(sendString.encode())
         return sendString
     
+    
+    
+    
+    
 # Create spark context and sparkSQL objects
 sc = pyspark.SparkContext.getOrCreate()
 spark = SQLContext(sc) 
 
 # Use sparkSQL to read in CSV
 demand_table = spark.read.csv("data/elec_demand_hourly.csv", header=True, inferSchema=True)
-date_table = spark.read.csv("data/dates.csv", header=True, inferSchema=True)
 region_table = spark.read.csv("data/region_table.csv", header=True, inferSchema=True)
 forecast_table = spark.read.csv("data/forecast_hourly.csv", header=True, inferSchema=True)
 region_table.registerTempTable("regions")
 demand_table.registerTempTable("demands")
-date_table.registerTempTable("dates")
 forecast_table.registerTempTable("forecasts")
-print(turnDataframeIntoJson("S","h","demands","2014","2017"))
-#date_table.printSchema()
-#temp1 = getOutliersImproved()[1].show(5)
-#temp2 = getMissingDates()[1].show(5)
+#print(turnDataframeIntoJson("S","h","demands","2014","2017"))
 
 
 
 # Ensure previous spark context has closed (Will fix this)
 sc.stop() 
+#date_table.printSchema()
