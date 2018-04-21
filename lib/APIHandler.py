@@ -67,7 +67,7 @@ class APIHandler:
                 month = tempDate[4:6]
                 day = tempDate[6:8]
                 hour = tempDate[9:11]
-                date = year +"-"+month+"-"+day+"T"+hour+":00:00.000Z"
+                date = year +"-"+month+"-"+day+" "+hour+":00:00+00:00"
                 weekday = datetime.date(int(year), int(month), int(day)).weekday()
                 demand = str(x["series"][0]["data"][i][1])
                 if(ba != "EEI" and ba != "WWA"):
@@ -87,7 +87,7 @@ class APIHandler:
                 month = tempDate[4:6]
                 day = tempDate[6:8]
                 hour = tempDate[9:11]
-                date = year +"-"+month+"-"+day+"T"+hour+":00:00.000Z"
+                date = year +"-"+month+"-"+day+" "+hour+":00:00+00:00"
                 weekday = datetime.date(int(year), int(month), int(day)).weekday()
                 demand = str(x["series"][0]["data"][i][1])
                 if(ba != "EEI" and ba != "WWA"):
