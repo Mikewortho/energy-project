@@ -18,6 +18,7 @@ import math
 from datetime import datetime
 from datetime import timedelta
 from pyspark.sql.functions import udf
+import csv
 
 
 def getOutliersImproved2():
@@ -90,16 +91,22 @@ if newWeather.count() != 0:
     for file in glob.glob('weatherStorage/part-00000-*.csv'):
         shutil.move(file, 'Data/elec_weather_hourlyClean.csv')
     shutil.rmtree('weatherStorage')
-    weatherData = spark.read.csv("weatherData/weather.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm:ss+00:00")
+    weatherData = spark.read.csv("Data/elec_weather_hourlyClean.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm:ss+00:00")
     weatherData.write.saveAsTable("demandsOut2")
     spark.sql("SELECT x.BA, x.TimeAndDate, x.wind_direction, x.wind_speed, x.temperature, x.temperature_dewpoint, x.air_pressure FROM demandsOut2 x JOIN (SELECT p.BA, MAX(TimeAndDate) AS maxDate FROM demandsOut2 p GROUP BY p.BA) y ON y.BA = x.BA AND y.maxDate = x.TimeAndDate GROUP BY x.BA, x.TimeAndDate, x.wind_direction, x.wind_speed, x.temperature, x.temperature_dewpoint, x.air_pressure").coalesce(1).write.option("header", "true").csv('weatherStorage2',timestampFormat="yyyy-MM-dd HH:mm:ss+00:00")
     for file in glob.glob('weatherStorage2/part-00000-*.csv'):
         shutil.move(file, 'Data/latestAndEarliestWeather.csv')
     shutil.rmtree('weatherStorage2')
     with open('data/newWeather.csv', 'w', newline="") as f:
-        f.write([["State","date","time","wind_direction","wind_speed","temperature","temperature_dewpoint","air_pressure"]])
-    
-    
+        writer = csv.writer(f)
+        writer.writerows([["State","date","time","wind_direction","wind_speed","temperature","temperature_dewpoint","air_pressure"]])
+    spark.sql('drop table Weather')
+    spark.sql('drop table latestAndEarliestWeather')
+    spark.sql('drop table weatherClean')
+    spark.sql('drop table dates')
+    spark.sql('drop table weatherOut')
+    spark.sql('drop table demandsOut2')
+
     
     
 #    spark.sql('drop table demands')

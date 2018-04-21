@@ -1,11 +1,6 @@
 import pyspark
-from pyspark.sql.functions import avg, stddev_pop
 from pyspark.sql import SQLContext       
 import zlib
-from pyspark.sql.types import StructType
-from pyspark.sql.types import StructField
-from pyspark.sql.types import TimestampType
-from pyspark.sql.types import StringType
 
 # extracts data between two dates
 def extractDate(startDate, endDate):
@@ -170,9 +165,7 @@ def turnDataframeIntoJson(ByBaOrStateOrRegion, timeUnit, model, startDate, endDa
             sendString += temp2+'\n'
         #compressedJson = zlib.compress(sendString.encode())
         return sendString
-    
-    
-    
+
     
     
 # Create spark context and sparkSQL objects
@@ -187,9 +180,8 @@ region_table.registerTempTable("regions")
 demand_table.registerTempTable("demands")
 forecast_table.registerTempTable("forecasts")
 #print(turnDataframeIntoJson("S","h","demands","2014","2017"))
-
-
+#print("hello")
+#print(spark.sql("select * from demands where Demand > 20000 and BA = 'PACE'").count())
 
 # Ensure previous spark context has closed (Will fix this)
 sc.stop() 
-#date_table.printSchema()
