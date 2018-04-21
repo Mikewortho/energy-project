@@ -1,0 +1,4 @@
+
+*.pyc
+spark-warehouse/.DS_Store
+data/region_table.csv
