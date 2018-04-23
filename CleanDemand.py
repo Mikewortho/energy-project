@@ -13,7 +13,9 @@ from pyspark.sql.functions import last, col, when
 from pyspark.sql.window import Window
 import sys
 import pandas as pd
-
+import requests, json, csv, datetime
+import time
+import os
 
 
 def getOutliersImproved2():
@@ -47,52 +49,173 @@ def getOutliersImproved2():
     return df10
 
 
-conf = SparkConf().setAppName('appName').setMaster('local[*]').set("spark.executor.memory", "8g")
-sc = SparkContext.getOrCreate(conf=conf)
-spark = SQLContext(sc)
-demand_table = spark.read.csv("data/newRows.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm'T'HH:mm:ss+00:00").select("BA","TimeAndDate","Demand")
-if demand_table.count() != 0:
-    if demand_table.dtypes[2][1] == "string":
-        demand_table = demand_table.select("BA","TimeAndDate","Demand").filter("Demand!='None'")
-    else:
-        demand_table = demand_table.select("BA","TimeAndDate","Demand")
-    if(demand_table.count() == 0):
-        with open('data/newRows.csv', 'w', newline="") as f:
-            pass
-    else:
-        demand_table.unionAll(spark.read.csv("data/latestAndEarliest.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm:ss+00:00").select("BA","TimeAndDate","Demand")).write.partitionBy("BA").saveAsTable("demands")
-        spark.cacheTable('demands')
-        demand_table = spark.read.csv("data/latestAndEarliest.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm:ss+00:00")
-        demand_table.write.saveAsTable("latestAndEarliest")
-        spark.cacheTable('latestAndEarliest')
-        demand_table = spark.read.csv("data/elec_demand_hourlyClean.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm:ss+00:00")
-        demand_table.write.saveAsTable("demandsClean")
-        dates = spark.sql("select min(TimeAndDate), max(TimeAndDate) from demands").collect()[0]
-        dataframe = spark.createDataFrame(pd.DataFrame(pd.date_range(dates[0], dates[1], freq="H", tz = 'UTC')),["TimeAndDate"]).repartition(8).registerTempTable("dates")
-        spark.cacheTable('dates')
-        getOutliersImproved2().unionAll(spark.read.csv("data/elec_demand_hourlyClean.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm:ss+00:00").select("BA","TimeAndDate","Demand")).write.saveAsTable("demandsOut")
-        spark.cacheTable('demandsOut')
-        spark.sql("select * from demands").unpersist(True)
-        spark.sql("select * from dates").unpersist(True)
-        spark.sql("select BA, Avg(Demand) Demand, Hour(TimeAndDate) Hour, Day(TimeAndDate) Day, Month(TimeAndDate) Month, Year(TimeAndDate) Year, weekofyear(TimeAndDate) Weekday, TimeAndDate from demandsOut group by BA, TimeAndDate order by BA").coalesce(1).write.option("header", "true").csv('myfile',timestampFormat="yyyy-MM-dd HH:mm:ss+00:00")
-        for file in glob.glob('myfile/part-00000-*.csv'):
-            shutil.move(file, 'data/elec_demand_hourlyClean.csv')
-        shutil.rmtree('myfile')
-        demand_table = spark.read.csv("data/elec_demand_hourlyClean.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm:ss+00:00")
-        demand_table.write.saveAsTable("demandsOut2")
-        spark.sql("SELECT x.BA, x.TimeAndDate, x.Demand, y.AvgDemands, y.std FROM demandsOut2 x JOIN (SELECT p.BA, MAX(TimeAndDate) AS maxDate, AVG(Demand) AvgDemands, STD(Demand) std FROM demandsOut2 p GROUP BY p.BA) y ON y.BA = x.BA AND y.maxDate = x.TimeAndDate GROUP BY x.BA, x.TimeAndDate, x.Demand, y.AvgDemands, y.std").coalesce(1).write.option("header", "true").csv('myfile2',timestampFormat="yyyy-MM-dd HH:mm:ss+00:00")
-        for file in glob.glob('myfile2/part-00000-*.csv'):
-            shutil.move(file, 'data/latestAndEarliest.csv')
-        shutil.rmtree('myfile2')
-        with open('data/newRows.csv', 'w', newline="") as f:
-            pass
-        spark.sql('drop table demands')
-        spark.sql('drop table demandsClean')
-        spark.sql('drop table dates')
-        spark.sql('drop table demandsOut')
-        spark.sql('drop table demandsOut2')
-        spark.sql('drop table latestAndEarliest')
-sc.stop()
+
+
+def append2csv(File_Name,BA_Update):
+    with open( File_Name,'a+') as file:
+        writer = csv.writer(file, delimiter=',', lineterminator='\n')
+        writer.writerows(BA_Update)
+        file.flush()
+        os.fsync(file)
+
+def csv2panda(name):
+     dframe = pd.read_csv(name)
+     return dframe
+
+
+# API keys definition
+EIA_API_KEY = '2eb9052e6a0316901fe316a4a5971df1'
+WAIT = 5*10
+DURATION = 60*60*24
+
+#Get Dictionary of BA'S
+
+request = 'http://api.eia.gov/category/?api_key=' + EIA_API_KEY + '&category_id=2122628'
+r = requests.get(request)
+x = r.json()
+ba, req = ([] for i in range(2))
+for i in range(len(x["category"]["childseries"])) : ba.append(json.dumps(x["category"]["childseries"][i]["name"])), req.append(json.dumps(x["category"]["childseries"][i]["series_id"]))
+for i in range(len(ba)):
+    ba[i] = ba[i][ba[i].find("(")+1:ba[i].find(")")]
+d = dict(zip(ba, req))
+d.pop('region', None)
+
+
+
+
+
+# Define APIHandler object
+#api_session = APIHandler.APIHandler(EIA_API_KEY)
+
+pre_hour = [[] for i in range(0,56)]
+current_hour = []
+time_series = [[] for i in range(0,56)]
+
+#pre-hr index
+index=0
+
+start = time.time()
+
+df = csv2panda('data/elec_demand_hourly.csv')
+row1 = [["BA","TimeAndDate","Demand"]]
+append2csv('data/newRows.csv',row1)
+
+
+counter = 0
+updateCounter = 0
+
+while(True):   
+    #currenttime index
+    cindex = 0
+    
+    currentTime = time.time()
+    if(currentTime-start > WAIT):
+
+        counter+=1
+        current_hour = [[] for i in range(0,56) ]
+        differenceCounter=0
+        now = datetime.datetime.now()
+
+
+        for ba in d.keys():
+            request = 'http://api.eia.gov/series/?api_key=' + EIA_API_KEY + '&series_id=' + d[ba].replace('"', '')
+            r = requests.get(request)
+            x = r.json()
+
+            if(ba != "EEI" and ba != "WWA"):
+                for i in range(len(x["series"][0]["data"])):
+                    tempDate = str(x["series"][0]["data"][i][0])
+                    year = tempDate[:4]
+                    month = tempDate[4:6]
+                    day = tempDate[6:8]
+                    hour = tempDate[9:11]
+                    date = year +"-"+month+"-"+day+"T"+hour+":00:00.000Z"
+                    weekday = datetime.date(int(year), int(month), int(day)).weekday()
+                    demand = str(x["series"][0]["data"][i][1])
+                    current_hour[cindex].append([ba,date,demand])
+                    #print(tempDate)
+
+                   
+                #print("Previous: ", counter, pre_hour[cindex][0])
+                #print("Current : ", counter , current_hour[cindex][0])
+                if(updateCounter == 0):
+                    difference  =  len(current_hour[cindex])-len(df[df['BA']==ba])
+                    #print(difference)
+                else:
+                    difference  =  len(current_hour[cindex])-len(pre_hour[cindex])
+
+                if(difference>0): 
+                    differenceCounter += difference
+                    #time_series[cindex].extend(current_hour[cindex][:difference])
+                    append2csv('data/newRows.csv',current_hour[cindex][:difference])
+                    #append2csv('',current_hour[cindex][:difference)
+                    pre_hour[cindex] = current_hour[cindex] 
+
+                #increment index exluding EEI etc ..
+                cindex+=1
+                print('\r', 'Update at time ', now.strftime("%Y-%m-%d %H:%M"),  '  : [', round((cindex/(56))*100,2),'% ]  complete' , end="")
+
+        print("")
+ 
+        if(differenceCounter >=0):
+            print("The csv has been updated  at time ",  now.strftime("%Y-%m-%d %H:%M")  ," with ", differenceCounter, " hrs of new data.")
+            updateCounter+=1
+        #reset Timer 
+        start = time.time()
+
+
+        conf = SparkConf().setAppName('appName').setMaster('local[*]').set("spark.executor.memory", "8g")
+        sc = SparkContext.getOrCreate(conf=conf)
+        spark = SQLContext(sc)
+        demand_table = spark.read.csv("data/newRows.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm'T'HH:mm:ss.000Z").select("BA","TimeAndDate","Demand")
+        if demand_table.count() != 0:
+            if demand_table.dtypes[2][1] == "string":
+                demand_table = demand_table.select("BA","TimeAndDate","Demand").filter("Demand!='None'")
+            else:
+                demand_table = demand_table.select("BA","TimeAndDate","Demand")
+            if(demand_table.count() == 0):
+                with open('data/newRows.csv', 'w', newline="") as f:
+                    writer = csv.writer(f)
+                    writer.writerows([["BA","TimeAndDate","Demand"]])
+                    f.flush()
+                    os.fsync(f)
+            else:
+                demand_table.unionAll(spark.read.csv("data/latestAndEarliest.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm:ss+00:00").select("BA","TimeAndDate","Demand")).write.partitionBy("BA").saveAsTable("demands")
+                spark.cacheTable('demands')
+                demand_table = spark.read.csv("data/latestAndEarliest.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm:ss+00:00")
+                demand_table.write.saveAsTable("latestAndEarliest")
+            spark.cacheTable('latestAndEarliest')
+            demand_table = spark.read.csv("data/elec_demand_hourlyClean.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm:ss+00:00")
+            demand_table.write.saveAsTable("demandsClean")
+            dates = spark.sql("select min(TimeAndDate), max(TimeAndDate) from demands").collect()[0]
+            dataframe = spark.createDataFrame(pd.DataFrame(pd.date_range(dates[0], dates[1], freq="H", tz = 'UTC')),["TimeAndDate"]).repartition(8).registerTempTable("dates")
+            spark.cacheTable('dates')
+            getOutliersImproved2().unionAll(spark.read.csv("data/elec_demand_hourlyClean.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm:ss+00:00").select("BA","TimeAndDate","Demand")).write.saveAsTable("demandsOut")
+            spark.cacheTable('demandsOut')
+            spark.sql("select * from demands").unpersist(True)
+            spark.sql("select * from dates").unpersist(True)
+            spark.sql("select BA, Avg(Demand) Demand, Hour(TimeAndDate) Hour, Day(TimeAndDate) Day, Month(TimeAndDate) Month, Year(TimeAndDate) Year, weekofyear(TimeAndDate) Weekday, TimeAndDate from demandsOut group by BA, TimeAndDate order by BA").coalesce(1).write.option("header", "true").csv('myfile',timestampFormat="yyyy-MM-dd HH:mm:ss+00:00")
+            for file in glob.glob('myfile/part-00000-*.csv'):
+                shutil.move(file, 'data/elec_demand_hourlyClean.csv')
+            shutil.rmtree('myfile')
+            demand_table = spark.read.csv("data/elec_demand_hourlyClean.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm:ss+00:00")
+            demand_table.write.saveAsTable("demandsOut2")
+            spark.sql("SELECT x.BA, x.TimeAndDate, x.Demand, y.AvgDemands, y.std FROM demandsOut2 x JOIN (SELECT p.BA, MAX(TimeAndDate) AS maxDate, AVG(Demand) AvgDemands, STD(Demand) std FROM demandsOut2 p GROUP BY p.BA) y ON y.BA = x.BA AND y.maxDate = x.TimeAndDate GROUP BY x.BA, x.TimeAndDate, x.Demand, y.AvgDemands, y.std").coalesce(1).write.option("header", "true").csv('myfile2',timestampFormat="yyyy-MM-dd HH:mm:ss+00:00")
+            for file in glob.glob('myfile2/part-00000-*.csv'):
+                shutil.move(file, 'data/latestAndEarliest.csv')
+            shutil.rmtree('myfile2')
+            with open('data/newRows.csv', 'w', newline="") as f:
+                writer = csv.writer(f)
+                writer.writerows([["BA","TimeAndDate","Demand"]])
+                f.flush()
+                os.fsync(f)
+            spark.sql('drop table demands')
+            spark.sql('drop table demandsClean')
+            spark.sql('drop table dates')
+            spark.sql('drop table demandsOut')
+            spark.sql('drop table demandsOut2')
+            spark.sql('drop table latestAndEarliest')
+        sc.stop()
 
 
 
