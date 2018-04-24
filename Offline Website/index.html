@@ -1,0 +1,69 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>Big Energy</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="manifest" href="site.webmanifest">
+        <link rel="apple-touch-icon" href="icon.png">
+        <!-- Place favicon.ico in the root directory -->
+
+        <link rel="stylesheet" href="css/normalize.css">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="stylesheet" href="css/c3.css"
+    </head>
+    <body>
+        <!--[if lte IE 9]>
+            <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
+        <![endif]-->
+
+        <!-- Site content-->
+        <header>
+            <div class="wrapper">
+                <div class="content">
+                    <p class="title">Big Energy</p>
+                    <p class="subTitle">A Predictive Approach to US Electrical Demand Modelling</p>
+                </div>
+            </div>
+        </header>
+
+        <div class ="main">
+            <div class="wrapper">
+                <div class = "content">
+                    <!-- <div id="chartContainer">FusionCharts will render here</div> -->
+                    <div id="map" style="width: 800px; height: 500px;"></div>
+                    <div id="clicked-state" class = "content"></div>
+                    <div class="container">
+                        <div id="chart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <div class="wrapper">
+                <div class="content"></div>
+            </div>
+        </footer>
+
+
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery-3.2.1.min.js"><\/script>')</script>
+        <script src="js/vendor/jquery-ui.min.js"></script>
+        <script src="js/vendor/modernizr-3.5.0.min.js"></script>
+        <script src="js/vendor/d3.v3.min.js"></script>
+		<script src="js/vendor/c3.min.js"></script>
+        <script src="js/vendor/papaparse.min.js"></script>
+
+        <script src="http://newsignature.github.com/us-map/js/libs/raphael.js"></script>
+        <script src="http://newsignature.github.com/us-map/js/libs/jquery.usmap.js"></script>
+        <script src="js/lib/plugins.js"></script>
+
+        <script src="js/CreateGraphsBisHourly.js"></script>
+        <script src="js/main.js"></script>
+    </body>
+</html>
