@@ -19,7 +19,6 @@ function printMap(data)
     // Array to object.
     var myStyles = {}
     for (var i = 1; i < data.length; i++) {
-        document.getElementsByClassName("main")[0].innerHTML += workOutValues(data[i][1])+"<br\>";
         myStyles[data[i][0]] = {fill: workOutValues(data[i][1])};
     }
 
