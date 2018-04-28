@@ -1,5 +1,4 @@
 
-
 function parseData2() {
     Papa.parse("../data/stateColours.csv", {
         download: true,
@@ -17,6 +16,7 @@ $(document).ready(function() {
 function printMap(data)
 {
     // Array to object.
+    var oldClass = ""
     var myStyles = {}
     for (var i = 1; i < data.length; i++) {
         myStyles[data[i][0]] = {fill: workOutValues(data[i][1])};
@@ -28,9 +28,13 @@ function printMap(data)
         click: function(event, data) {
             $('#clicked-state')
             .text('You clicked: ' + data.name);
+            if(oldClass != "")
+                document.getElementById(oldClass).style.display = "none";
+            document.getElementById(data.name).style.display = "block";
+            oldClass = data.name;
             console.log(data.name);
             updateChart();
-            $('#map').usmap({stateStyles: {fill: 'red'}});
+
         },
 
         // the hover action
@@ -52,7 +56,7 @@ function updateChart() {
     )
 }
 
-function workOutValues(percent) 
+function workOutValues(percent)
 {
     percent = percent/100
     if(percent<=-0.5)
@@ -101,4 +105,21 @@ function workOutValues(percent)
     }
 }
 
+// $('.radioButton').click(function(this) {
+//     ($this).val()
+// });
+//
+// $('.radioButton').click(setShape);
+//
+// function setShape() {
+//     var BA  = $('.radionButton:checked').val();
+//     }
+//
+// {
+//     ($this).val()
+// });
 
+$('.radioButton').click(function() {
+    var BA  = $('.radioButton:checked').val();
+    console.log(BA + 'HI')
+});

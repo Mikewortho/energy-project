@@ -30,9 +30,9 @@ function createGraph(data) {
        // _.range(startDate, endDate);
        // time.push(data[i][0]);
 
-        if (data[i][0] == startDate) {           
-            b = true; 
-            
+        if (data[i][0] == startDate) {
+            b = true;
+
             }
 
         if (data[i][0] == endDate){
@@ -40,39 +40,39 @@ function createGraph(data) {
             Demand.push(data[i][1]);
             Forecast.push(data[i][2]);
             Prediction.push(data[i][3]);
-            
+
             b = false
             break
-            
+
             }
-        
+
         if (b == true){
 
-        
+
         time.push(data[i][0]);
         Demand.push(data[i][1]);
         Forecast.push(data[i][2]);
         Prediction.push(data[i][3]);
             }
- 
-       
+
+
 
     }
-   
+
 
     console.log(time);
-    console.log(Demand);    
+    console.log(Demand);
     console.log(Forecast);
     console.log(Prediction);
-   
+
 
     var chart = c3.generate({
             to: '#chart',
             data: {
-                columns: 
-                
-            [   Demand, 
-                Forecast, 
+                columns:
+
+            [   Demand,
+                Forecast,
                 Prediction,
                 ]
             },
@@ -94,7 +94,7 @@ function createGraph(data) {
             legend: {
                 position: 'right'
             }
-      
+
         });
 
 }
