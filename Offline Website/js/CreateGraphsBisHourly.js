@@ -4,7 +4,7 @@
 
 
 function parseData(createGraph) {
-    Papa.parse("../data/DUK_actual_hourly.csv", {
+    Papa.parse("../data/DUK_hourly_Daily.csv", {
         download: true,
         complete: function(results) {
             createGraph(results.data);
@@ -14,15 +14,18 @@ function parseData(createGraph) {
 
 function createGraph(data) {
 
-    var startDate = ["01/07/2015 00:00"];
-    var endDate = ["11/04/2016 04:00"];
+    var startDate = ["01/04/2018 00:00"];
+    var endDate = ["14/04/2018 00:00"];
     //var difference = [];
 
 
     var time = [];
-    var Demand = ["Predicted Demand "];
-    var Forecast = ["U.S Forecast"];
+    var Demand = ["Actual Demand "];
+    var Forecast = ["US Forecast"];
     var Prediction = ["Our Prediction"];
+    var rf = ["RF Prediction"];
+    var mlp = ["MLP Prediction"];
+    var svm = ["SVM Prediction"];
     var b = false;
 
     for (var i = 1; i < data.length; i++) {
@@ -40,9 +43,11 @@ function createGraph(data) {
             Demand.push(data[i][1]);
             Forecast.push(data[i][2]);
             Prediction.push(data[i][3]);
-
-            b = false
-            break
+            rf.push(data[i][4]);
+            mlp.push(data[i][5]);
+            svm.push(data[i][6]);
+            b = false;
+            break;
 
             }
 
@@ -53,6 +58,9 @@ function createGraph(data) {
         Demand.push(data[i][1]);
         Forecast.push(data[i][2]);
         Prediction.push(data[i][3]);
+        rf.push(data[i][4]);
+        mlp.push(data[i][5]);
+        svm.push(data[i][6]);
             }
 
 
@@ -64,7 +72,9 @@ function createGraph(data) {
     console.log(Demand);
     console.log(Forecast);
     console.log(Prediction);
-
+    console.log(rf);
+    console.log(mlp);
+    console.log(svm);
 
     var chart = c3.generate({
             to: '#chart',
@@ -74,6 +84,9 @@ function createGraph(data) {
             [   Demand,
                 Forecast,
                 Prediction,
+                rf,
+                mlp,
+                svm,
                 ]
             },
             axis: {
