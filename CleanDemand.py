@@ -171,7 +171,12 @@ for ba in d.keys():
 write2csv("forecastedData.csv",pre_hour, fields)
 start = time.time()
 
-BA_LIST = ['DUK', 'GCPD', 'TAL', 'SEC', 'SCEG', 'CPLW', 'CISO', 'FPC', 'TPWR', 'AZPS', 'LDWP', 'AVA', 'OVEC', 'PSCO', 'SOCO', 'CHPD', 'JEA', 'TEPC']
+# List of BAs
+BA_LIST = ['DUK', 'GCPD', 'TAL', 'SEC', 'SCEG', 'CPLW', 'CISO', 'FPC', 'TPWR', 'AZPS', 'LDWP', 'AVA', 'OVEC', 'PSCO', 'SOCO', 'CHPD', 'JEA', 'TEPC', 'WALC', 'PACE'\
+           , 'CPLE', 'SCL','IID', 'TVA', 'NYIS', 'EPE', 'MISO', 'FPL', 'BANC', 'PNM', 'LGEE', 'HST', 'IPCO', 'PACW', 'NSB', 'FMPP', 'TIDC', 'NEVP', 'SWPP', 'WAUW'\
+           , 'ISNE', 'PGE', 'SPA','TEC', 'SC', 'PJM', 'DOPD', 'NWMT', 'SRP', 'ERCO', 'WACM', 'GVL', 'PSEI', 'AECI', 'BPAT', 'AEC']
+
+# Parameters
 labels = ["Daily", "Weekly", "Monthly"]
 s = [24, 168, 720]
 days_back = [28, 30, 60]
