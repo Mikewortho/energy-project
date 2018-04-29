@@ -8,11 +8,18 @@ from pyspark.sql.types import TimestampType, StringType, StructType, StructField
 from pyspark import SparkContext, SparkConf
 from pyspark.sql.functions import last, col, when
 from pyspark.sql.window import Window
+from sklearn.neural_network import MLPClassifier, MLPRegressor
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+from sklearn.datasets import make_regression
 import sys
 import pandas as pd
 import requests, json, csv, datetime
 import time
 import os
+import pickle
+import warnings
+import statsmodels.api as sm
 
 
 import statsmodels.api as sm
@@ -357,13 +364,15 @@ while(True):
         # Forecast
         if(howManyNewRows != 0):
            
+            # Get new clean data - check if anything new
+            new_clean = pd.read_csv("data/elec_demand_hourlyClean.csv")
+            forecast_data = pd.read_csv("forecastedData.csv")
             # Daily/Weekly/Monthly updates
             for i in range(len(BA_LIST)):#len(1)):#BA_LIST)):
            
                 print(BA_LIST[i])
                
-                # Get new clean data - check if anything new
-                new_clean = pd.read_csv("data/elec_demand_hourlyClean.csv")
+                # Get specific BA
                 ba_condition = new_clean["BA"] == BA_LIST[i]
                 clean = new_clean[ba_condition]
                 clean.index = pd.to_datetime(clean["TimeAndDate"], format='%Y-%m-%dT%H')
