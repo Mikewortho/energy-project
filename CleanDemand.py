@@ -1,8 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Mon Mar 26 17:08:53 2018
-
 @author: robertjohnson
 """
 import glob, shutil
@@ -11,11 +8,18 @@ from pyspark.sql.types import TimestampType, StringType, StructType, StructField
 from pyspark import SparkContext, SparkConf
 from pyspark.sql.functions import last, col, when
 from pyspark.sql.window import Window
+from sklearn.neural_network import MLPClassifier, MLPRegressor
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+from sklearn.datasets import make_regression
 import sys
 import pandas as pd
 import requests, json, csv, datetime
 import time
 import os
+import pickle
+import warnings
+import statsmodels.api as sm
 
 
 import statsmodels.api as sm
@@ -174,7 +178,12 @@ for ba in d.keys():
 write2csv("forecastedData.csv",pre_hour, fields)
 start = time.time()
 
-BA_LIST = ['DUK', 'GCPD', 'TAL', 'SEC', 'SCEG', 'CPLW', 'CISO', 'FPC', 'TPWR', 'AZPS', 'LDWP', 'AVA', 'OVEC', 'PSCO', 'SOCO', 'CHPD', 'JEA', 'TEPC']
+# List of BAs
+BA_LIST = ['DUK', 'GCPD', 'TAL', 'SEC', 'SCEG', 'CPLW', 'CISO', 'FPC', 'TPWR', 'AZPS', 'LDWP', 'AVA', 'OVEC', 'PSCO', 'SOCO', 'CHPD', 'JEA', 'TEPC', 'WALC', 'PACE'\
+           , 'CPLE', 'SCL','IID', 'TVA', 'NYIS', 'EPE', 'MISO', 'FPL', 'BANC', 'PNM', 'LGEE', 'HST', 'IPCO', 'PACW', 'NSB', 'FMPP', 'TIDC', 'NEVP', 'SWPP', 'WAUW'\
+           , 'ISNE', 'PGE', 'SPA','TEC', 'SC', 'PJM', 'DOPD', 'NWMT', 'SRP', 'ERCO', 'WACM', 'GVL', 'PSEI', 'AECI', 'BPAT', 'AEC']
+
+# Parameters
 labels = ["Daily", "Weekly", "Monthly"]
 s = [24, 168, 720]
 days_back = [28, 30, 60]
@@ -355,18 +364,29 @@ while(True):
         # Forecast
         if(howManyNewRows != 0):
            
+            # Get new clean data - check if anything new
+            new_clean = pd.read_csv("data/elec_demand_hourlyClean.csv")
+            forecast_data = pd.read_csv("forecastedData.csv")
             # Daily/Weekly/Monthly updates
             for i in range(len(BA_LIST)):#len(1)):#BA_LIST)):
            
                 print(BA_LIST[i])
                
-                # Get new clean data - check if anything new
-                new_clean = pd.read_csv("data/elec_demand_hourlyClean.csv")
+                # Get specific BA
                 ba_condition = new_clean["BA"] == BA_LIST[i]
                 clean = new_clean[ba_condition]
                 clean.index = pd.to_datetime(clean["TimeAndDate"], format='%Y-%m-%dT%H')
                 clean = clean.sort_index()
-           
+                
+                # Open US forecasts to join new forecasted data
+                ba_condition = forecast_data["BA"] == BA_LIST[i]
+                us_forecast = forecast_data[ba_condition]
+                us_forecast.index = pd.to_datetime(us_forecast["TimeAndDate"], format='%Y-%m-%dT%H')
+                us_forecast = us_forecast[["Demand"]]
+                us_forecast.columns = ["US Forecast"]
+                us_forecast = us_forecast.sort_index()
+                us_forecast = us_forecast[~us_forecast.index.duplicated()]
+               
                 for j in range(len(labels)):
            
                     old_data = pd.read_csv("gen_data/" + BA_LIST[i] + "_hourly_" + labels[j] + ".csv")
@@ -412,11 +432,43 @@ while(True):
                             yhat["Weekday"] = yhat.index.weekday
                             yhat["Month"] = yhat.index.month
                             model_input = yhat[["Hour", "Weekday", "Month", "Prediction"]]    
+                                                      
+                            # Load and use pretrained models to make demand predictions
+                            rf_clf = pickle.load(open("models/" + BA_LIST[i] + "_" + labels[j] + "_RF.sav", "rb"))
+                            mlp_clf = pickle.load(open("models/" +BA_LIST[i] + "_" + labels[j] + "_MLP.sav", "rb"))
+                            svm_clf = pickle.load(open("models/" +BA_LIST[i] + "_" + labels[j] + "_SVM.sav", "rb"))
+                            
+                            # Get predictions
+                            predicted =  rf_clf.predict(model_input)
+                            p = pd.DataFrame(predicted)
+                            p.index = yhat.index    
+                            out = p[0].add(yhat["Prediction"], axis=0)
+                            yhat["RF Prediction"] = out                
+                            predicted =  mlp_clf.predict(model_input)
+                            p = pd.DataFrame(predicted)
+                            p.index = yhat.index    
+                            out = p[0].add(yhat["Prediction"], axis=0)
+                            yhat["MLP Prediction"] = out
+                            predicted =  svm_clf.predict(model_input)
+                            p = pd.DataFrame(predicted)
+                            p.index = yhat.index    
+                            out = p[0].add(yhat["Prediction"], axis=0)
+                            yhat["SVM Prediction"] = out                             
+                            
+                            # Write out updated data
                             old_data = old_data.append(pd.DataFrame(yhat[["Prediction"]]))
                             old_data.Date = old_data.index
                             date_info[0] = date_info[0] + pd.Timedelta(hours=s[j])        
+                            old_data = old_data[["Date", "Demand", "MLP Prediction", "Prediction", "RF Prediction", "SVM Prediction"]]
+                            old_data["US Forecast"] = us_forecast
                             old_data = old_data.fillna(0)
+                            old_data = old_data[["Date", "Demand", "US Forecast", "Prediction", "RF Prediction", "MLP Prediction", "SVM Prediction"]]
                             old_data.to_csv("gen_data/" + BA_LIST[i] + "_hourly_" + labels[j] + ".csv", index=False)
-                       
+                        
                         else:
                             break
+                        
+                    # Store new dates of predictions
+                    f = open("gen_data/" + BA_LIST[i] + "_dates_" + labels[j] + ".txt", 'w+')
+                    f.write(str(date_info[0]) + "\n" + str(date_info[1]))
+                    f.close()
