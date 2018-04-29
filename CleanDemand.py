@@ -462,6 +462,7 @@ while(True):
                             old_data = old_data[["Date", "Demand", "MLP Prediction", "Prediction", "RF Prediction", "SVM Prediction"]]
                             old_data["US Forecast"] = us_forecast
                             old_data = old_data.fillna(0)
+                            old_data = old_data[["Date", "Demand", "US Forecast", "Prediction", "RF Prediction", "MLP Prediction", "SVM Prediction"]]
                             old_data.to_csv("gen_data/" + BA_LIST[i] + "_hourly_" + labels[j] + ".csv", index=False)
                         
                         else:
