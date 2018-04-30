@@ -1,6 +1,6 @@
 """
 Created on Mon Mar 26 17:08:53 2018
-@author: robertjohnson
+@author: robertjohnson, Omid Soltan, Jack Taylor
 """
 import glob, shutil
 from pyspark.sql import SQLContext       
@@ -8,21 +8,16 @@ from pyspark.sql.types import TimestampType, StringType, StructType, StructField
 from pyspark import SparkContext, SparkConf
 from pyspark.sql.functions import last, col, when
 from pyspark.sql.window import Window
-from sklearn.neural_network import MLPClassifier, MLPRegressor
-from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
-from sklearn.datasets import make_regression
 import sys
 import pandas as pd
 import requests, json, csv, datetime
 import time
 import os
 import pickle
-import warnings
+import numpy as np
 import statsmodels.api as sm
 
 
-import statsmodels.api as sm
 
 
 def getOutliersImproved2():
@@ -61,10 +56,6 @@ def getOutliersImproved2():
         df10 = df10.unionAll(recordsWithCalenderAndCorrectDemands)
     return df10
 
-#------------------------------------------------------------------------------------------------------------------------
-
-
-
 
 
 def write2csv(File_Name,BA_Update,fields):
@@ -75,6 +66,16 @@ def write2csv(File_Name,BA_Update,fields):
         file.flush()
         os.fsync(file)
 
+def append2csv(File_Name,BA_Update):
+    with open( File_Name,'w') as file:
+        writer = csv.writer(file, delimiter=',', lineterminator='\n')
+        writer.writerows(BA_Update)
+        file.flush()
+        os.fsync(file)
+
+def csv2panda(name):
+     dframe = pd.read_csv(name)
+     return dframe
 
 
 
@@ -97,20 +98,6 @@ for i in range(len(ba)):
 d = dict(zip(ba, req))
 d.pop('region', None)
 
-
-def append2csv(File_Name,BA_Update):
-    with open( File_Name,'a+') as file:
-        writer = csv.writer(file, delimiter=',', lineterminator='\n')
-        writer.writerows(BA_Update)
-        file.flush()
-        os.fsync(file)
-
-def csv2panda(name):
-     dframe = pd.read_csv(name)
-     return dframe
-
-
-
 #Get Dictionary of BA'S
 
 request1 = 'http://api.eia.gov/category/?api_key=' + EIA_API_KEY + '&category_id=2122628'
@@ -123,60 +110,7 @@ for i in range(len(ba1)):
 d1 = dict(zip(ba1, req1))
 d1.pop('region', None)
 
-
-# Define APIHandler object
-#api_session = APIHandler.APIHandler(EIA_API_KEY)
-
-pre_hour1 = [[] for i in range(0,56)]
-current_hour1 = []
-
-#pre-hr index
-index1=0
-
-start = time.time()
-
-df1 = csv2panda('data/elec_demand_hourly.csv')
-row1 = [["BA","TimeAndDate","Demand"]]
-append2csv('data/newRows.csv',row1)
-
-
-counter = 0
-updateCounter = 0
-
-
-# Define APIHandler object
-#api_session = APIHandler.APIHandler(EIA_API_KEY)
-
-pre_hour = []
-current_hour = []
-
-
-index=0
-now = datetime.datetime.now()
 fields = ["BA", "Demand", "Hour", "Day", "Month", "Year",  "Weekday", "TimeAndDate"]    
-
-for ba in d.keys():
-        request = 'http://api.eia.gov/series/?api_key=' + EIA_API_KEY + '&series_id=' + d[ba].replace('"', '')
-        r = requests.get(request)
-        x = r.json()
-
-        if(ba != "EEI" and ba != "WWA"):
-            for i in range(len(x["series"][0]["data"])):
-                tempDate = str(x["series"][0]["data"][i][0])
-                year = tempDate[:4]
-                month = tempDate[4:6]
-                day = tempDate[6:8]
-                hour = tempDate[9:11]
-                date = year +"-"+month+"-"+day+"T"+hour+":00:00.000Z"
-                weekday = datetime.date(int(year), int(month), int(day)).weekday()
-                demand = str(x["series"][0]["data"][i][1])
-                #BA,Demand,Hour,Day,Month,Year,Weekday,TimeAndDate
-                pre_hour.append([ba, demand, hour, day, month, year, weekday, date])
-            index+=1
-            print('\r', 'First update of forecast at time ', now.strftime("%Y-%m-%d %H:%M"),  '  : [', round((index/(56))*100,2),'% ]  complete' , end="")
-
-write2csv("forecastedData.csv",pre_hour, fields)
-start = time.time()
 
 # List of BAs
 BA_LIST = ['DUK', 'GCPD', 'TAL', 'SEC', 'SCEG', 'CPLW', 'CISO', 'FPC', 'TPWR', 'AZPS', 'LDWP', 'AVA', 'OVEC', 'PSCO', 'SOCO', 'CHPD', 'JEA', 'TEPC', 'WALC', 'PACE'\
@@ -189,119 +123,79 @@ s = [24, 168, 720]
 days_back = [28, 30, 60]
 
 
-
-#row1 = [["BA","TimeAndDate","Demand"]]
-#append2csv('newRows.csv',row1)
-
-
+start = time.time()-WAIT
 while(True):   
-    #currenttimels index
     cindex = 0
-    now = datetime.datetime.now()
-
     currentTime = time.time()
     if(currentTime-start > WAIT):
-        differenceCounter =0
-        #counter+=1
-        current_hour = []
+        start = time.time()
         now = datetime.datetime.now()
-
-        fields = ["BA", "Demand", "Hour", "Day", "Month", "Year",  "Weekday", "TimeAndDate"]    
-
-        baindex = 0
-        for (ba) in d.keys():
-            request = 'http://api.eia.gov/series/?api_key=' + EIA_API_KEY + '&series_id=' + d[ba].replace('"', '')
-            r = requests.get(request)
-            x = r.json()
-
-            if(ba != "EEI" and ba != "WWA"):
-                for i in range(len(x["series"][0]["data"])):
-                    tempDate = str(x["series"][0]["data"][i][0])
-                    year = tempDate[:4]
-                    month = tempDate[4:6]
-                    day = tempDate[6:8]
-                    hour = tempDate[9:11]
-                    date = year +"-"+month+"-"+day+"T"+hour+":00:00.000Z"
-                    weekday = datetime.date(int(year), int(month), int(day)).weekday()
-                    demand = str(x["series"][0]["data"][i][1])
-                    #BA,Demand,Hour,Day,Month,Year,Weekday,TimeAndDate
-                    current_hour.append([ba, demand, hour, day, month, year, weekday, date])
-
-                print('\r', 'The forecast data is being updated at time ', now.strftime("%Y-%m-%d %H:%M"),  '  : [', round((baindex/(56))*100,2),'% ]  complete' , end="")
-                baindex +=1
-        write2csv('forecasteddata.csv',current_hour,fields)  
-                #print("Previous: ", counter, pre_hour[cindex][0])
-                #print("Current : ", counter , current_hour[cindex][0])
-#--------------------------------                
-
+        df2 = pd.read_csv('data/latestAndEarliest.csv')
+        df2["TimeAndDate"] = pd.to_datetime(df2["TimeAndDate"], format="%Y-%m-%d %H:00:00+00:00")
+        df2.index = df2['TimeAndDate']
+        newRecords  = pd.DataFrame(columns = ['BA','TimeAndDate','Demand'])
+        #print(df2.loc[df2['BA']=="AEC"])
         current_hour1 = [[] for i in range(0,56)]    
         for ba in d1.keys():
             request1 = 'http://api.eia.gov/series/?api_key=' + EIA_API_KEY + '&series_id=' + d[ba].replace('"', '')
             r1 = requests.get(request1)
             x1 = r1.json()
-
             if(ba != "EEI" and ba != "WWA"):
                 for i in range(len(x1["series"][0]["data"])):
                     tempDate = str(x1["series"][0]["data"][i][0])
-                    year = tempDate[:4]
-                    month = tempDate[4:6]
-                    day = tempDate[6:8]
-                    hour = tempDate[9:11]
-                    date = year +"-"+month+"-"+day+"T"+hour+":00:00.000Z"
-                    weekday = datetime.date(int(year), int(month), int(day)).weekday()
                     demand = str(x1["series"][0]["data"][i][1])
-                    current_hour1[cindex].append([ba,date,demand])
-                    #print(tempDate)
-                   
-                #print("Previous: ", counter, pre_hour[cindex][0])
-                #print("Current : ", counter , current_hour[cindex][0])
-                if(updateCounter == 0):
-                    difference  =  len(current_hour1[cindex])-len(df1[df1['BA']==ba])
-                    #print(difference)
-                else:
-                    difference  =  len(current_hour1[cindex])-len(pre_hour1[cindex])
-
-                if(difference>0): 
-                    differenceCounter += difference
-                    #time_series[cindex].extend(current_hour[cindex][:difference])
-                    append2csv('data/newRows.csv',current_hour1[cindex][:difference])
-                    #append2csv('',current_hour[cindex][:difference)
-                    pre_hour1[cindex] = current_hour1[cindex] 
-
-                #increment index exluding EEI etc ..
+                    current_hour1[cindex].append([ba,tempDate,demand])
+                BARecords = current_hour1[cindex]
+                df = pd.DataFrame(np.array(BARecords), columns = list(["BA","TimeAndDate","Demand"]))
+                df["TimeAndDate"] = pd.to_datetime(df["TimeAndDate"], format="%Y%m%dT%HZ")
+                newRecords = newRecords.append(df[df['TimeAndDate']>df2.loc[df2['BA']==ba].index.tolist()[0]])
                 cindex+=1
-                print('\r', 'Update of demand at time ', now.strftime("%Y-%m-%d %H:%M"),  '  : [', round((cindex/(56))*100,2),'% ]  complete' , end="")
-
+            print('\r', 'Update of demand at time ', now.strftime("%Y-%m-%d %H:%M"),  '  : [', round((cindex/(56))*100,2),'% ]  complete' , end="")
+        newRecords.to_csv("data/newRows.csv",index=False,date_format='%Y-%m-%dT%H:00:00.000Z')
         print("")
- 
-        if(differenceCounter >=0):
-            print("The demand data has been updated  at time ",  now.strftime("%Y-%m-%d %H:%M")  ," with ", differenceCounter, " hrs of new data.")
-            updateCounter+=1
+        print(" The demand data has been updated  at time ",  now.strftime("%Y-%m-%d %H:%M")  ," with ", newRecords.shape[0], " hrs of new data.")
+        print("")
+        
         #reset Timer 
-
-
-
-                #increment index exluding EEI etc ..        
- 
-
-            
-
-        #reset Timer 
-        start = time.time()
-#------------------------------------------------------------------------------------------------------------------------
-        print("helloworld")
+        if(newRecords.shape[0]>0):
+            differenceCounter =0
+            current_hour = []
+            now = datetime.datetime.now()
+    
+            fields = ["BA", "Demand", "Hour", "Day", "Month", "Year",  "Weekday", "TimeAndDate"]    
+    
+            baindex = 0
+            for (ba) in d.keys():
+                request = 'http://api.eia.gov/series/?api_key=' + EIA_API_KEY + '&series_id=' + d[ba].replace('"', '')
+                r = requests.get(request)
+                x = r.json()
+    
+                if(ba != "EEI" and ba != "WWA"):
+                    for i in range(len(x["series"][0]["data"])):
+                        tempDate = str(x["series"][0]["data"][i][0])
+                        year = tempDate[:4]
+                        month = tempDate[4:6]
+                        day = tempDate[6:8]
+                        hour = tempDate[9:11]
+                        date = year +"-"+month+"-"+day+"T"+hour+":00:00.000Z"
+                        weekday = datetime.date(int(year), int(month), int(day)).weekday()
+                        demand = str(x["series"][0]["data"][i][1])
+                        #BA,Demand,Hour,Day,Month,Year,Weekday,TimeAndDate
+                        current_hour.append([ba, demand, hour, day, month, year, weekday, date])
+                        baindex +=1
+                print('\r', 'The forecast data is being updated at time ', now.strftime("%Y-%m-%d %H:%M"),  '  : [', round((baindex/(56))*100,2),'% ]  complete' , end="")
+            write2csv('forecasteddata.csv',current_hour,fields)  
+            print("")
+            print("Now cleaning the data.")
 
         
-        # Create spark configuration for localhost
-        conf = SparkConf().setAppName('appName').setMaster('local[*]').set("spark.executor.memory", "8g")
-        sc = SparkContext.getOrCreate(conf=conf)
-        spark = SQLContext(sc)
-        # create a dataframe of our new rows
-        demand_table = spark.read.csv("data/newRows.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm'T'HH:mm:ss.000Z").select("BA","TimeAndDate","Demand")
-        # if there is new records
-        howManyNewRows = demand_table.count()
-        if demand_table.count() != 0:
-            # if the type of the demand column is a string then remove the "None" value else leave it.
+            # Create spark configuration for localhost
+            conf = SparkConf().setAppName('appName').setMaster('local[*]').set("spark.executor.memory", "8g")
+            sc = SparkContext.getOrCreate(conf=conf)
+            spark = SQLContext(sc)
+            # create a dataframe of our new rows
+            demand_table = spark.read.csv("data/newRows.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm'T'HH:mm:ss.000Z").select("BA","TimeAndDate","Demand")
+            # if there is new records
             if demand_table.dtypes[2][1] == "string":
                 demand_table = demand_table.select("BA","TimeAndDate","Demand").filter("Demand!='None'")
             else:
@@ -360,10 +254,8 @@ while(True):
                 spark.sql('drop table demandsOut2')
                 spark.sql('drop table latestAndEarliest')
         sc.stop()
-        
         # Forecast
         if(howManyNewRows != 0):
-           
             # Get new clean data - check if anything new
             new_clean = pd.read_csv("data/elec_demand_hourlyClean.csv")
             forecast_data = pd.read_csv("forecastedData.csv")
