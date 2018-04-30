@@ -182,7 +182,7 @@ while(True):
                         demand = str(x["series"][0]["data"][i][1])
                         #BA,Demand,Hour,Day,Month,Year,Weekday,TimeAndDate
                         current_hour.append([ba, demand, hour, day, month, year, weekday, date])
-                        baindex +=1
+                    baindex +=1
                 print('\r', 'The forecast data is being updated at time ', now.strftime("%Y-%m-%d %H:%M"),  '  : [', round((baindex/(56))*100,2),'% ]  complete' , end="")
             write2csv('forecasteddata.csv',current_hour,fields)  
             print("")
