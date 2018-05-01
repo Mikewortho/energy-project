@@ -30,7 +30,7 @@ def getOutliersImproved2():
     for currentBA in range(len(BAStats)):
         # set the flag if we need to use new avgStd if we have never seen this BA before and get all statistics.
         flag = False
-        print("%d,%d"%(currentBA, len(BAStats)))
+        print('\r', 'Creation of query for (', (currentBA+1),  '/',len(BAStats),') Ba\'s' , end="")
         BA = BAStats[currentBA][0]
         ENDTIME = BAStats[currentBA][1]
         STARTTIME = BAStats[currentBA][2]
@@ -84,7 +84,7 @@ def csv2panda(name):
 
 # API keys definition
 EIA_API_KEY = '2eb9052e6a0316901fe316a4a5971df1'
-WAIT = 1*10
+WAIT = 1*240
 
 #Get Dictionary of BA'S
 
@@ -127,6 +127,10 @@ start = time.time()-WAIT
 while(True):   
     cindex = 0
     currentTime = time.time()
+    #25, 15 16
+    timeToSleep = start+WAIT-currentTime
+    if(timeToSleep > 1):
+        time.sleep(timeToSleep)
     if(currentTime-start > WAIT):
         start = time.time()
         now = datetime.datetime.now()
@@ -137,9 +141,14 @@ while(True):
         #print(df2.loc[df2['BA']=="AEC"])
         current_hour1 = [[] for i in range(0,56)]    
         for ba in d1.keys():
-            request1 = 'http://api.eia.gov/series/?api_key=' + EIA_API_KEY + '&series_id=' + d[ba].replace('"', '')
-            r1 = requests.get(request1)
-            x1 = r1.json()
+            try:
+                request1 = 'http://api.eia.gov/series/?api_key=' + EIA_API_KEY + '&series_id=' + d1[ba].replace('"', '')
+                r1 = requests.get(request1)
+                x1 = r1.json()
+            except ConnectionError:
+                print("Connection timed out.")
+                newRecords  = pd.DataFrame(columns = ['BA','TimeAndDate','Demand'])
+                break
             if(ba != "EEI" and ba != "WWA"):
                 for i in range(len(x1["series"][0]["data"])):
                     tempDate = str(x1["series"][0]["data"][i][0])
@@ -150,14 +159,13 @@ while(True):
                 df["TimeAndDate"] = pd.to_datetime(df["TimeAndDate"], format="%Y%m%dT%HZ")
                 newRecords = newRecords.append(df[df['TimeAndDate']>df2.loc[df2['BA']==ba].index.tolist()[0]])
                 cindex+=1
-            print('\r', 'Update of demand at time ', now.strftime("%Y-%m-%d %H:%M"),  '  : [', round((cindex/(56))*100,2),'% ]  complete' , end="")
-        newRecords.to_csv("data/newRows.csv",index=False,date_format='%Y-%m-%dT%H:00:00.000Z')
-        print("")
-        print(" The demand data has been updated  at time ",  now.strftime("%Y-%m-%d %H:%M")  ," with ", newRecords.shape[0], " hrs of new data.")
-        print("")
-        
+            print('\r', 'Update of demand at time ', now.strftime("%Y-%m-%d %H:%M"),  '  : [', round((cindex/(56))*100,2),'% ]  complete' , end="")        
         #reset Timer 
         if(newRecords.shape[0]>0):
+            newRecords.to_csv("data/newRows.csv",index=False,date_format='%Y-%m-%dT%H:00:00.000Z')
+            print("")
+            print(" The demand data has been updated  at time ",  now.strftime("%Y-%m-%d %H:%M")  ," with ", newRecords.shape[0], " hrs of new data.")
+            print("")
             differenceCounter =0
             current_hour = []
             now = datetime.datetime.now()
@@ -165,11 +173,16 @@ while(True):
             fields = ["BA", "Demand", "Hour", "Day", "Month", "Year",  "Weekday", "TimeAndDate"]    
     
             baindex = 0
+            error = 0
             for (ba) in d.keys():
-                request = 'http://api.eia.gov/series/?api_key=' + EIA_API_KEY + '&series_id=' + d[ba].replace('"', '')
-                r = requests.get(request)
-                x = r.json()
-    
+                try:
+                    request = 'http://api.eia.gov/series/?api_key=' + EIA_API_KEY + '&series_id=' + d[ba].replace('"', '')
+                    r = requests.get(request)
+                    x = r.json()
+                except ConnectionError:
+                    print("Connection timed out.")
+                    error = 1
+                    break
                 if(ba != "EEI" and ba != "WWA"):
                     for i in range(len(x["series"][0]["data"])):
                         tempDate = str(x["series"][0]["data"][i][0])
@@ -186,182 +199,186 @@ while(True):
                 print('\r', 'The forecast data is being updated at time ', now.strftime("%Y-%m-%d %H:%M"),  '  : [', round((baindex/(56))*100,2),'% ]  complete' , end="")
             current_hour = list(reversed(current_hour))
             write2csv('forecasteddata.csv',current_hour,fields)  
-            print("")
-            print("Now cleaning the data.")
-
-        
-            # Create spark configuration for localhost
-            conf = SparkConf().setAppName('appName').setMaster('local[*]').set("spark.executor.memory", "8g")
-            sc = SparkContext.getOrCreate(conf=conf)
-            spark = SQLContext(sc)
-            # create a dataframe of our new rows
-            demand_table = spark.read.csv("data/newRows.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm'T'HH:mm:ss.000Z").select("BA","TimeAndDate","Demand")
-            # if there is new records
-            if demand_table.dtypes[2][1] == "string":
-                demand_table = demand_table.select("BA","TimeAndDate","Demand").filter("Demand!='None'")
-            else:
-                demand_table = demand_table.select("BA","TimeAndDate","Demand")
-            # if we now have no rows then clean out new rows and restart
-            howManyNewRows = demand_table.count()
-            if(demand_table.count() == 0):
-                with open('data/newRows.csv', 'w', newline="") as f:
-                    writer = csv.writer(f)
-                    writer.writerows([["BA","TimeAndDate","Demand"]])
-                    f.flush()
-                    os.fsync(f)
-            else:
-                # create the union of our new rows and our old latest records and create a table and cache it.
-                demand_table.unionAll(spark.read.csv("data/latestAndEarliest.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm:ss+00:00").select("BA","TimeAndDate","Demand")).write.partitionBy("BA").saveAsTable("demands")
-                spark.cacheTable('demands')
-                # read the old latest dates and get the mean and sd of each ba and cache it.
-                latestDates = spark.read.csv("data/latestAndEarliest.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm:ss+00:00")
-                latestDates.write.saveAsTable("latestAndEarliest")
-                spark.cacheTable('latestAndEarliest')
-                # get the clean data and write it to a table
-                cleanData = spark.read.csv("data/elec_demand_hourlyClean.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm:ss+00:00")
-                cleanData.write.saveAsTable("demandsClean")
-                # create calender dataframe from the starting and end latest dates and cache it.
-                dates = spark.sql("select min(TimeAndDate), max(TimeAndDate) from demands").collect()[0]
-                dataframe = spark.createDataFrame(pd.DataFrame(pd.date_range(dates[0], dates[1], freq="H", tz = 'UTC')),["TimeAndDate"]).repartition(8).registerTempTable("dates")
-                spark.cacheTable('dates')
-                # get the missing records and records that are incorrect and approximate them then set it to our cleaned new records table called demandsOut
-                getOutliersImproved2().unionAll(spark.read.csv("data/elec_demand_hourlyClean.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm:ss+00:00").select("BA","TimeAndDate","Demand")).write.saveAsTable("demandsOut")
-                spark.cacheTable('demandsOut')
-                # unpersist the old tables of dates and old records
-                spark.sql("select * from demands").unpersist(True)
-                spark.sql("select * from dates").unpersist(True)
-                # write the new records to file.
-                spark.sql("select BA, Avg(Demand) Demand, Hour(TimeAndDate) Hour, Day(TimeAndDate) Day, Month(TimeAndDate) Month, Year(TimeAndDate) Year, weekofyear(TimeAndDate) Weekday, TimeAndDate from demandsOut group by BA, TimeAndDate order by BA,TimeAndDate").coalesce(1).write.option("header", "true").csv('myfile',timestampFormat="yyyy-MM-dd HH:mm:ss+00:00")
-                for file in glob.glob('myfile/part-00000-*.csv'):
-                    shutil.move(file, 'data/elec_demand_hourlyClean.csv')
-                shutil.rmtree('myfile')
-                # read the new records and then output the new sd and avg values to file.
-                demand_table = spark.read.csv("data/elec_demand_hourlyClean.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm:ss+00:00")
-                demand_table.write.saveAsTable("demandsOut2")
-                spark.sql("SELECT x.BA, x.TimeAndDate, x.Demand, y.AvgDemands, y.std FROM demandsOut2 x JOIN (SELECT p.BA, MAX(TimeAndDate) AS maxDate, AVG(Demand) AvgDemands, STD(Demand) std FROM demandsOut2 p GROUP BY p.BA) y ON y.BA = x.BA AND y.maxDate = x.TimeAndDate GROUP BY x.BA, x.TimeAndDate, x.Demand, y.AvgDemands, y.std").coalesce(1).write.option("header", "true").csv('myfile2',timestampFormat="yyyy-MM-dd HH:mm:ss+00:00")
-                for file in glob.glob('myfile2/part-00000-*.csv'):
-                    shutil.move(file, 'data/latestAndEarliest.csv')
-                shutil.rmtree('myfile2')
-                with open('data/newRows.csv', 'w', newline="") as f:
-                    writer = csv.writer(f)
-                    writer.writerows([["BA","TimeAndDate","Demand"]])
-                    f.flush()
-                    os.fsync(f)
-                # drop all tables.
-                spark.sql('drop table demands')
-                spark.sql('drop table demandsClean')
-                spark.sql('drop table dates')
-                spark.sql('drop table demandsOut')
-                spark.sql('drop table demandsOut2')
-                spark.sql('drop table latestAndEarliest')
-            sc.stop()
-            # Forecast
-            if(howManyNewRows != 0):
-                # Get new clean data - check if anything new
-                new_clean = pd.read_csv("data/elec_demand_hourlyClean.csv")
-                forecast_data = pd.read_csv("forecastedData.csv")
-                # Daily/Weekly/Monthly updates
-                for i in range(len(BA_LIST)):#len(1)):#BA_LIST)):
-               
-                    print(BA_LIST[i])
-                   
-                    # Get specific BA
-                    ba_condition = new_clean["BA"] == BA_LIST[i]
-                    clean = new_clean[ba_condition]
-                    clean.index = pd.to_datetime(clean["TimeAndDate"], format='%Y-%m-%dT%H')
-                    clean = clean.sort_index()
-                    
-                    # Open US forecasts to join new forecasted data
-                    ba_condition = forecast_data["BA"] == BA_LIST[i]
-                    us_forecast = forecast_data[ba_condition]
-                    us_forecast.index = pd.to_datetime(us_forecast["TimeAndDate"], format='%Y-%m-%d %H')
-                    us_forecast = us_forecast[["Demand"]]
-                    us_forecast.columns = ["US Forecast"]
-                    us_forecast = us_forecast.sort_index()
-                    us_forecast = us_forecast[~us_forecast.index.duplicated()]
-                   
-                    for j in range(len(labels)):
-               
-                        old_data = pd.read_csv("gen_data/" + BA_LIST[i] + "_hourly_" + labels[j] + ".csv")
-                        old_data.index = pd.to_datetime(old_data["Date"], format='%Y-%m-%dT%H')
+            if(error == 0):
+                print("")
+                print("Now cleaning the data.")
+                # Create spark configuration for localhost
+                conf = SparkConf().setAppName('appName').setMaster('local[*]').set("spark.executor.memory", "8g")
+                sc = SparkContext.getOrCreate(conf=conf)
+                spark = SQLContext(sc)
+                # create a dataframe of our new rows
+                demand_table = spark.read.csv("data/newRows.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm'T'HH:mm:ss.000Z").select("BA","TimeAndDate","Demand")
+                # if there is new records
+                if demand_table.dtypes[2][1] == "string":
+                    demand_table = demand_table.select("BA","TimeAndDate","Demand").filter("Demand!='None'")
+                else:
+                    demand_table = demand_table.select("BA","TimeAndDate","Demand")
+                # if we now have no rows then clean out new rows and restart
+                howManyNewRows = demand_table.count()
+                if(demand_table.count() == 0):
+                    with open('data/newRows.csv', 'w', newline="") as f:
+                        writer = csv.writer(f)
+                        writer.writerows([["BA","TimeAndDate","Demand"]])
+                        f.flush()
+                        os.fsync(f)
+                else:
+                    # create the union of our new rows and our old latest records and create a table and cache it.
+                    demand_table.unionAll(spark.read.csv("data/latestAndEarliest.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm:ss+00:00").select("BA","TimeAndDate","Demand")).write.partitionBy("BA").saveAsTable("demands")
+                    spark.cacheTable('demands')
+                    # read the old latest dates and get the mean and sd of each ba and cache it.
+                    latestDates = spark.read.csv("data/latestAndEarliest.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm:ss+00:00")
+                    latestDates.write.saveAsTable("latestAndEarliest")
+                    spark.cacheTable('latestAndEarliest')
+                    # get the clean data and write it to a table
+                    cleanData = spark.read.csv("data/elec_demand_hourlyClean.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm:ss+00:00")
+                    cleanData.write.saveAsTable("demandsClean")
+                    # create calender dataframe from the starting and end latest dates and cache it.
+                    dates = spark.sql("select min(TimeAndDate), max(TimeAndDate) from demands").collect()[0]
+                    dataframe = spark.createDataFrame(pd.DataFrame(pd.date_range(dates[0], dates[1], freq="H", tz = 'UTC')),["TimeAndDate"]).repartition(8).registerTempTable("dates")
+                    spark.cacheTable('dates')
+                    # get the missing records and records that are incorrect and approximate them then set it to our cleaned new records table called demandsOut
+                    getOutliersImproved2().unionAll(spark.read.csv("data/elec_demand_hourlyClean.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm:ss+00:00").select("BA","TimeAndDate","Demand")).write.saveAsTable("demandsOut")
+                    spark.cacheTable('demandsOut')
+                    # unpersist the old tables of dates and old records
+                    spark.sql("select * from demands").unpersist(True)
+                    spark.sql("select * from dates").unpersist(True)
+                    # write the new records to file.
+                    spark.sql("select BA, Avg(Demand) Demand, Hour(TimeAndDate) Hour, Day(TimeAndDate) Day, Month(TimeAndDate) Month, Year(TimeAndDate) Year, weekofyear(TimeAndDate) Weekday, TimeAndDate from demandsOut group by BA, TimeAndDate order by BA,TimeAndDate").coalesce(1).write.option("header", "true").csv('myfile',timestampFormat="yyyy-MM-dd HH:mm:ss+00:00")
+                    for file in glob.glob('myfile/part-00000-*.csv'):
+                        shutil.move(file, 'data/elec_demand_hourlyClean.csv')
+                    shutil.rmtree('myfile')
+                    # read the new records and then output the new sd and avg values to file.
+                    demand_table = spark.read.csv("data/elec_demand_hourlyClean.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm:ss+00:00")
+                    demand_table.write.saveAsTable("demandsOut2")
+                    spark.sql("SELECT x.BA, x.TimeAndDate, x.Demand, y.AvgDemands, y.std FROM demandsOut2 x JOIN (SELECT p.BA, MAX(TimeAndDate) AS maxDate, AVG(Demand) AvgDemands, STD(Demand) std FROM demandsOut2 p GROUP BY p.BA) y ON y.BA = x.BA AND y.maxDate = x.TimeAndDate GROUP BY x.BA, x.TimeAndDate, x.Demand, y.AvgDemands, y.std").coalesce(1).write.option("header", "true").csv('myfile2',timestampFormat="yyyy-MM-dd HH:mm:ss+00:00")
+                    for file in glob.glob('myfile2/part-00000-*.csv'):
+                        shutil.move(file, 'data/latestAndEarliest.csv')
+                    shutil.rmtree('myfile2')
+                    with open('data/newRows.csv', 'w', newline="") as f:
+                        writer = csv.writer(f)
+                        writer.writerows([["BA","TimeAndDate","Demand"]])
+                        f.flush()
+                        os.fsync(f)
+                    # drop all tables.
+                    spark.sql('drop table demands')
+                    spark.sql('drop table demandsClean')
+                    spark.sql('drop table dates')
+                    spark.sql('drop table demandsOut')
+                    spark.sql('drop table demandsOut2')
+                    spark.sql('drop table latestAndEarliest')
+                sc.stop()
+                # Forecast
+                if(howManyNewRows != 0):
+                    # Get new clean data - check if anything new
+                    new_clean = pd.read_csv("data/elec_demand_hourlyClean.csv")
+                    forecast_data = pd.read_csv("forecastedData.csv")
+                    # Daily/Weekly/Monthly updates
+                    for i in range(len(BA_LIST)):#len(1)):#BA_LIST)):
+                        secondPrint = 0
                        
-                        # Get last known dates
-                        print(labels[j])
-                        f = open("gen_data/" + BA_LIST[i] + "_dates_" + labels[j] + ".txt", 'r')
-                        date_info = f.read()
-                        date_info = date_info.split("\n")        
-                        date_info[0] = pd.to_datetime(date_info[0], format='%Y-%m-%dT%H')        
-                        ij = 0
-               
-               
-                        while(ij == 0):
-               
-                            print(date_info[0])  
-                                       
-                            # Is there any new data
-                            new_known_data_condition = clean.index > date_info[0] - pd.Timedelta(hours=1)
-                            new_known_data = clean[new_known_data_condition]
-                            if(len(new_known_data > 0)):
-                                new_known_data = new_known_data.sort_index()
-                                               
-                                # Is there anything new to forecast?
-                                updated_demand = pd.merge(new_known_data[["Demand"]], old_data, how='inner', left_index=True, right_index=True)
-                                updated_demand = updated_demand[["Date", "Demand_x", "Prediction", "RF Prediction", "MLP Prediction", "SVM Prediction", "US Forecast"]]
-                                updated_demand.columns = ["Date", "Demand", "Prediction", "RF Prediction", "MLP Prediction", "SVM Prediction", "US Forecast"]
-                                new_known_data_condition = old_data.index < date_info[0]
-                                old_data = old_data[new_known_data_condition]
-                                old_data = old_data.append(updated_demand)
-                               
-                                # 24hr lookahead forecast
-                                lookahead_model = sm.tsa.statespace.SARIMAX(old_data.Demand[-days_back[j]*24:].values, order=(1,1,0), seasonal_order=(1,1,0,24), enforce_stationarity=False, enforce_invertibility=False)
-                                lookahead_fit = lookahead_model.fit()    
-                                yhat = lookahead_fit.forecast(steps=s[j])
-                                last_known_date = old_data.tail(1).index
-                                test = pd.date_range(last_known_date[0] + pd.Timedelta(hours=1), last_known_date[0] + pd.Timedelta(hours=s[j]), freq='H')
-                                yhat = pd.DataFrame(yhat)
-                                yhat.columns = ["Prediction"]
-                                yhat.index = test
-                                yhat["Hour"] = yhat.index.hour
-                                yhat["Weekday"] = yhat.index.weekday
-                                yhat["Month"] = yhat.index.month
-                                model_input = yhat[["Hour", "Weekday", "Month", "Prediction"]]    
-                                                          
-                                # Load and use pretrained models to make demand predictions
-                                rf_clf = pickle.load(open("models/" + BA_LIST[i] + "_" + labels[j] + "_RF.sav", "rb"))
-                                mlp_clf = pickle.load(open("models/" +BA_LIST[i] + "_" + labels[j] + "_MLP.sav", "rb"))
-                                svm_clf = pickle.load(open("models/" +BA_LIST[i] + "_" + labels[j] + "_SVM.sav", "rb"))
+                        # Get specific BA
+                        ba_condition = new_clean["BA"] == BA_LIST[i]
+                        clean = new_clean[ba_condition]
+                        clean.index = pd.to_datetime(clean["TimeAndDate"], format='%Y-%m-%dT%H')
+                        clean = clean.sort_index()
+                        
+                        # Open US forecasts to join new forecasted data
+                        ba_condition = forecast_data["BA"] == BA_LIST[i]
+                        us_forecast = forecast_data[ba_condition]
+                        us_forecast.index = pd.to_datetime(us_forecast["TimeAndDate"], format='%Y-%m-%d %H')
+                        us_forecast = us_forecast[["Demand"]]
+                        us_forecast.columns = ["US Forecast"]
+                        us_forecast = us_forecast.sort_index()
+                        us_forecast = us_forecast[~us_forecast.index.duplicated()]
+                        for j in range(len(labels)):
+                            firstPrint = 0
+                            old_data = pd.read_csv("gen_data/" + BA_LIST[i] + "_hourly_" + labels[j] + ".csv")
+                            old_data.index = pd.to_datetime(old_data["Date"], format='%Y-%m-%dT%H')
+                           
+                            # Get last known dates
+                            f = open("gen_data/" + BA_LIST[i] + "_dates_" + labels[j] + ".txt", 'r')
+                            date_info = f.read()
+                            date_info = date_info.split("\n")        
+                            date_info[0] = pd.to_datetime(date_info[0], format='%Y-%m-%dT%H')        
+                            ij = 0
+                   
+                            while(ij == 0):
                                 
-                                # Get predictions
-                                predicted =  rf_clf.predict(model_input)
-                                p = pd.DataFrame(predicted)
-                                p.index = yhat.index    
-                                out = p[0].add(yhat["Prediction"], axis=0)
-                                yhat["RF Prediction"] = out                
-                                predicted =  mlp_clf.predict(model_input)
-                                p = pd.DataFrame(predicted)
-                                p.index = yhat.index    
-                                out = p[0].add(yhat["Prediction"], axis=0)
-                                yhat["MLP Prediction"] = out
-                                predicted =  svm_clf.predict(model_input)
-                                p = pd.DataFrame(predicted)
-                                p.index = yhat.index    
-                                out = p[0].add(yhat["Prediction"], axis=0)
-                                yhat["SVM Prediction"] = out                             
+                                           
+                                # Is there any new data
+                                new_known_data_condition = clean.index > date_info[0] - pd.Timedelta(hours=1)
+                                new_known_data = clean[new_known_data_condition]
+                                if(len(new_known_data > 0)):
+                                    if(secondPrint==0):
+                                        print(BA_LIST[i])
+                                        secondPrint = 1
+                                    if(firstPrint==0):
+                                        print(labels[j])
+                                        firstPrint = 1
+                                    print(date_info[0]) 
+                                    new_known_data = new_known_data.sort_index()
+                                                   
+                                    # Is there anything new to forecast?
+                                    updated_demand = pd.merge(new_known_data[["Demand"]], old_data, how='inner', left_index=True, right_index=True)
+                                    updated_demand = updated_demand[["Date", "Demand_x", "Prediction", "RF Prediction", "MLP Prediction", "SVM Prediction", "US Forecast"]]
+                                    updated_demand.columns = ["Date", "Demand", "Prediction", "RF Prediction", "MLP Prediction", "SVM Prediction", "US Forecast"]
+                                    new_known_data_condition = old_data.index < date_info[0]
+                                    old_data = old_data[new_known_data_condition]
+                                    old_data = old_data.append(updated_demand)
+                                   
+                                    # 24hr lookahead forecast
+                                    lookahead_model = sm.tsa.statespace.SARIMAX(old_data.Demand[-days_back[j]*24:].values, order=(1,1,0), seasonal_order=(1,1,0,24), enforce_stationarity=False, enforce_invertibility=False)
+                                    lookahead_fit = lookahead_model.fit()    
+                                    yhat = lookahead_fit.forecast(steps=s[j])
+                                    last_known_date = old_data.tail(1).index
+                                    test = pd.date_range(last_known_date[0] + pd.Timedelta(hours=1), last_known_date[0] + pd.Timedelta(hours=s[j]), freq='H')
+                                    yhat = pd.DataFrame(yhat)
+                                    yhat.columns = ["Prediction"]
+                                    yhat.index = test
+                                    yhat["Hour"] = yhat.index.hour
+                                    yhat["Weekday"] = yhat.index.weekday
+                                    yhat["Month"] = yhat.index.month
+                                    model_input = yhat[["Hour", "Weekday", "Month", "Prediction"]]    
+                                                              
+                                    # Load and use pretrained models to make demand predictions
+                                    rf_clf = pickle.load(open("models/" + BA_LIST[i] + "_" + labels[j] + "_RF.sav", "rb"))
+                                    mlp_clf = pickle.load(open("models/" +BA_LIST[i] + "_" + labels[j] + "_MLP.sav", "rb"))
+                                    svm_clf = pickle.load(open("models/" +BA_LIST[i] + "_" + labels[j] + "_SVM.sav", "rb"))
+                                    
+                                    # Get predictions
+                                    predicted =  rf_clf.predict(model_input)
+                                    p = pd.DataFrame(predicted)
+                                    p.index = yhat.index    
+                                    out = p[0].add(yhat["Prediction"], axis=0)
+                                    yhat["RF Prediction"] = out                
+                                    predicted =  mlp_clf.predict(model_input)
+                                    p = pd.DataFrame(predicted)
+                                    p.index = yhat.index    
+                                    out = p[0].add(yhat["Prediction"], axis=0)
+                                    yhat["MLP Prediction"] = out
+                                    predicted =  svm_clf.predict(model_input)
+                                    p = pd.DataFrame(predicted)
+                                    p.index = yhat.index    
+                                    out = p[0].add(yhat["Prediction"], axis=0)
+                                    yhat["SVM Prediction"] = out                             
+                                    
+                                    # Write out updated data
+                                    old_data = old_data.append(pd.DataFrame(yhat[["Prediction"]]))
+                                    old_data.Date = old_data.index
+                                    date_info[0] = date_info[0] + pd.Timedelta(hours=s[j])        
+                                    old_data = old_data[["Date", "Demand", "MLP Prediction", "Prediction", "RF Prediction", "SVM Prediction"]]
+                                    old_data["US Forecast"] = us_forecast
+                                    old_data = old_data.fillna(0)
+                                    old_data = old_data[["Date", "Demand", "US Forecast", "Prediction", "RF Prediction", "MLP Prediction", "SVM Prediction"]]
+                                    old_data.to_csv("gen_data/" + BA_LIST[i] + "_hourly_" + labels[j] + ".csv", index=False)
                                 
-                                # Write out updated data
-                                old_data = old_data.append(pd.DataFrame(yhat[["Prediction"]]))
-                                old_data.Date = old_data.index
-                                date_info[0] = date_info[0] + pd.Timedelta(hours=s[j])        
-                                old_data = old_data[["Date", "Demand", "MLP Prediction", "Prediction", "RF Prediction", "SVM Prediction"]]
-                                old_data["US Forecast"] = us_forecast
-                                old_data = old_data.fillna(0)
-                                old_data = old_data[["Date", "Demand", "US Forecast", "Prediction", "RF Prediction", "MLP Prediction", "SVM Prediction"]]
-                                old_data.to_csv("gen_data/" + BA_LIST[i] + "_hourly_" + labels[j] + ".csv", index=False)
+                                else:
+                                    break
+                                
+                            # Store new dates of predictions
+                            f = open("gen_data/" + BA_LIST[i] + "_dates_" + labels[j] + ".txt", 'w+')
+                            f.write(str(date_info[0]) + "\n" + str(date_info[1]))
+                            f.close()
                             
-                            else:
-                                break
                             
-                        # Store new dates of predictions
-                        f = open("gen_data/" + BA_LIST[i] + "_dates_" + labels[j] + ".txt", 'w+')
-                        f.write(str(date_info[0]) + "\n" + str(date_info[1]))
-                        f.close()
+
