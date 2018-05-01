@@ -1,6 +1,13 @@
+// Global variables for the parameters to the graphing code
+var selectedState = "";
+var startDate = 0;
+var endDate = 0;
+var timePrecision = "";
+var parseParameters = {};
+var ba = ""
 
-function parseData2() {
-    Papa.parse("../data/stateColours.csv", {
+function parseStateColorsAndUpdate() {
+    Papa.parse("../../gen_data/stateColours.csv", {
         download: true,
         complete: function(results) {
             var resultsData = results.data
@@ -8,9 +15,26 @@ function parseData2() {
         }
     })
 }
+
 $(document).ready(function() {
-    parseData2()
-    console.log("Entered!")
+    parseStateColorsAndUpdate()
+    $(function(){
+      $("#radioButtonContainer").load("radioButtons.html"); // As radio buttons file is very large, this was kept out of index.html for readability
+    });
+
+    $( function() { // Create datepickers for our two input boxes
+        $( "#startDate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd/mm/yy'});
+    });
+
+    $( function() {
+        $( "#endDate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd/mm/yy'});
+    });
 });
 
 function printMap(data)
@@ -18,46 +42,36 @@ function printMap(data)
     // Array to object.
     var oldClass = ""
     var myStyles = {}
+
     for (var i = 1; i < data.length; i++) {
         myStyles[data[i][0]] = {fill: workOutValues(data[i][1])};
     }
 
     $('#map').usmap({
-        stateStyles: {fill: '#5F5F5F'},
-        stateSpecificStyles: myStyles,
+        stateStyles: {fill: '#5F5F5F'}, // Colour all states blue
+        stateSpecificStyles: myStyles,  // Colour affected states according to their precision
+
         click: function(event, data) {
-            $('#clicked-state')
-            .text('You clicked: ' + data.name);
-            if(oldClass != "")
-                document.getElementById(oldClass).style.display = "none";
-            document.getElementById(data.name).style.display = "block";
+            $('#clicked-state').text('You have selected: ' + data.name);
+            selectedState = data.name;
+            document.getElementById("chart").style.display = "none"
+            document.getElementById("statsContainer").style.display = "none"
+
+            if(oldClass != "") {
+                document.getElementById(oldClass).style.display = "none"
+            }
+
+            document.getElementById(data.name).style.display = "block" // Show the html for the checkboxes for the BAs
+            window.scrollTo(0,document.body.scrollHeight);
+
             oldClass = data.name;
             console.log(data.name);
-            updateChart();
-
         },
-
-        // the hover action
-        mouseover: function(event, data) {
-            $('#clicked-state')
-            .text('You hovered: '+data.name);
-            console.log(data.name);
-        }
     });
-}
-
-function updateChart() {
-    var $image = $("img").first();
-    if ($image.attr("src") == "../site/img/chart01.jpg") {
-        $image.attr("src", "../site/img/chart02.jpg");
-    }
-    else (
-        $image.attr("src", "../site/img/chart02.jpg")
-    )
-}
+};
 
 function workOutValues(percent)
-{
+{   // Create RGB values for the precision of each state its' forecast is with the actual
     percent = percent/100
     if(percent<=-0.5)
     {
@@ -105,21 +119,32 @@ function workOutValues(percent)
     }
 }
 
-// $('.radioButton').click(function(this) {
-//     ($this).val()
-// });
-//
-// $('.radioButton').click(setShape);
-//
-// function setShape() {
-//     var BA  = $('.radionButton:checked').val();
-//     }
-//
-// {
-//     ($this).val()
-// });
+// Get data from button presses
+$('.button').click(function() {
+    startDate = $('#startDate').val();      // Get dates from input boxes
+    endDate = $('#endDate').val();
+    timePrecision = $(this).val();          // take precision from button clicked
+    ba = $("input[name='myRadio']:checked").val();
+    parseParameters = {                         // create JSON for graph parameters
+        'startDate' : startDate,
+        'endDate' : endDate,
+        'state' : selectedState,
+        'timePrecision' : timePrecision,
+        'BA' : ba
+    }
 
-$('.radioButton').click(function() {
-    var BA  = $('.radioButton:checked').val();
-    console.log(BA + 'HI')
+    parseData(createGraph, parseParameters);    // Create graph using parameters
+    parseStats(parseParameters);
+    $('#statsTable').replaceWith('<table id="statsTable"><tr><th>Prediction</th><th>  R2 Score  </th><th>  Spearman Correlation  </th><th>  Pearson Correlation  </th><tr></table>')
+    document.getElementById('statsContainer').style.display = "block"; //
+
+    // updateAndDisplayStatsSidebar();      // Update the stats table
+});
+
+$(document).on('change',"input[name='myRadio']:radio",function(){                  // When radion button selected
+    ba = $("input[name='myRadio']:checked").val();                                 // Get the right BA
+    document.getElementById('dateContainer').style.display = "block";              // Show the date selection
+    document.getElementById('selectionButtonContainer').style.display = "block";   // Show the radio buttons
+    window.scrollTo(0,document.body.scrollHeight);                                 // Scroll to bottom of page
+    console.log(ba);
 });
