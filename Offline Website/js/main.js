@@ -54,13 +54,14 @@ function printMap(data)
         click: function(event, data) {
             $('#clicked-state').text('You have selected: ' + data.name);
             selectedState = data.name;
-            document.getElementById("chart").style.display = "none";
+            document.getElementById("chart").style.display = "none"
+            document.getElementById("statsContainer").style.display = "none"
 
             if(oldClass != "") {
-                document.getElementById(oldClass).style.display = "none";
+                document.getElementById(oldClass).style.display = "none"
             }
 
-            document.getElementById(data.name).style.display = "block"; // Show the html for the checkboxes for the BAs
+            document.getElementById(data.name).style.display = "block" // Show the html for the checkboxes for the BAs
             window.scrollTo(0,document.body.scrollHeight);
 
             oldClass = data.name;
