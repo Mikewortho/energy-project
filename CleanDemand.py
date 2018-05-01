@@ -363,7 +363,7 @@ while(True):
                                     yhat["SVM Prediction"] = out                             
                                     
                                     # Write out updated data
-                                    old_data = old_data.append(pd.DataFrame(yhat[["Prediction"]]))
+                                    old_data = old_data.append(pd.DataFrame(yhat[["Prediction", "RF Prediction", "MLP Prediction", "SVM Prediction"]]))
                                     old_data.Date = old_data.index
                                     date_info[0] = date_info[0] + pd.Timedelta(hours=s[j])        
                                     old_data = old_data[["Date", "Demand", "MLP Prediction", "Prediction", "RF Prediction", "SVM Prediction"]]
