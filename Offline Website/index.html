@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE HTML>
 <html class="no-js" lang="">
     <head>
         <meta charset="utf-8">
@@ -13,8 +13,10 @@
 
         <link rel="stylesheet" href="css/normalize.css">
         <link rel="stylesheet" href="css/main.css">
-        <link rel="stylesheet" href="css/c3.css"
+        <link rel="stylesheet" href="css/c3.css">
+        <link rel="stylesheet" href="css/jquery-ui.css">
     </head>
+
     <body>
         <!--[if lte IE 9]>
             <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
@@ -34,9 +36,49 @@
             <div class="wrapper">
                 <div class = "content">
                     <!-- <div id="chartContainer">FusionCharts will render here</div> -->
+                    <p class="centered">Please select a State</p>
                     <div id="map" style="width: 800px; height: 500px;"></div>
+<<<<<<< HEAD
                     <div id="clicked-state" class = "content"></div>
                     <div class="container">
+=======
+                    <div id="clicked-state" class = "content centered"></div>
+                    <div class="container"></div>
+
+                    <div class="container" id = "radioButtonContainer">
+                    <!-- HTML for the radio buttons is loaded in main.js and kept in radioButtons.html -->
+                    </div>
+
+                    <div class="container" id="dateContainer" style="display: none;">
+                        <p class="centered">Please select a date range and time precision</p>
+                        <div id="startDateContainer">
+                            <p>Start Date:  <input type="text" id = "startDate"></p>
+                        </div>
+                        <div id="endDateContainer">
+                            <p>End Date:  <input type="text" id = "endDate"></p>
+                        </div>
+                        <span class="stretch"></span>
+                    </div>
+
+                    <div class="container" id="selectionButtonContainer" style="display: none;">
+                        <div class="buttonContainer" id="button0">
+                            <button type="button" id="hourlyButton" class="button" value="Hourly">Hourly</button>
+                        </div>
+                        <div class="buttonContainer" id="button1">
+                            <button type="button" id="dailyButton" class="button" value="Daily">Daily</button>
+                        </div>
+                        <div class="buttonContainer" id="button2">
+                            <button type="button" id="monthlyButton" class="button" value="Monthly">Monthly</button>
+                        </div>
+                        <div class="buttonContainer" id="button3">
+                            <button type="button" id="yearlyButton" class="button" value="Yearly">Yearly</button>
+                        </div>
+                        <span class="stretch"></span>
+                    </div>
+
+                    <div class="content">
+                        <div id="chart"></div>
+>>>>>>> Cameron
                     </div>
                 </div>
             </div>
@@ -193,7 +235,6 @@
     <div class="content">
     <div id="chart"></div>
                     </div>
-
 
 
         <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>

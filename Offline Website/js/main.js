@@ -1,5 +1,16 @@
+<<<<<<< HEAD
 
 function parseData2() {
+=======
+var selectedState = "";
+var startDate = 0;
+var endDate = 0;
+var timePrecision = "";
+var parseParameters = {};
+var ba = ""
+
+function parseStateColorsAndUpdate() {
+>>>>>>> Cameron
     Papa.parse("../data/stateColours.csv", {
         download: true,
         complete: function(results) {
@@ -8,9 +19,33 @@ function parseData2() {
         }
     })
 }
+<<<<<<< HEAD
 $(document).ready(function() {
     parseData2()
     console.log("Entered!")
+=======
+
+$(document).ready(function() {
+    parseStateColorsAndUpdate()
+    $(function(){
+      $("#radioButtonContainer").load("radioButtons.html");
+    });
+    console.log("Entered!")
+
+    $( function() {
+        $( "#startDate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd/mm/yy'});
+    });
+
+    $( function() {
+        $( "#endDate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd/mm/yy'});
+    });
+>>>>>>> Cameron
 });
 
 function printMap(data)
@@ -18,6 +53,12 @@ function printMap(data)
     // Array to object.
     var oldClass = ""
     var myStyles = {}
+<<<<<<< HEAD
+    for (var i = 1; i < data.length; i++) {
+        myStyles[data[i][0]] = {fill: workOutValues(data[i][1])};
+    }
+=======
+
     for (var i = 1; i < data.length; i++) {
         myStyles[data[i][0]] = {fill: workOutValues(data[i][1])};
     }
@@ -25,7 +66,13 @@ function printMap(data)
     $('#map').usmap({
         stateStyles: {fill: '#5F5F5F'},
         stateSpecificStyles: myStyles,
+>>>>>>> Cameron
+
+    $('#map').usmap({
+        stateStyles: {fill: '#5F5F5F'},
+        stateSpecificStyles: myStyles,
         click: function(event, data) {
+<<<<<<< HEAD
             $('#clicked-state')
             .text('You clicked: ' + data.name);
             if(oldClass != "")
@@ -35,14 +82,31 @@ function printMap(data)
             console.log(data.name);
             updateChart();
 
-        },
+=======
+            $('#clicked-state').text('You have selected: ' + data.name);
+            selectedState = data.name;
 
-        // the hover action
-        mouseover: function(event, data) {
-            $('#clicked-state')
-            .text('You hovered: '+data.name);
+            if(oldClass != "") {
+                document.getElementById(oldClass).style.display = "none";
+            }
+            document.getElementById(data.name).style.display = "block";
+            oldClass = data.name;
             console.log(data.name);
+>>>>>>> Cameron
+        },
+    });
+};
+
+function workOutValues(percent)
+{
+    percent = percent/100
+    if(percent<=-0.5)
+    {
+        if(255-(-percent-0.5)*510<16)
+        {
+            return "#"+Math.round(255).toString(16)+"0"+Math.round(255-(-percent-0.5)*510).toString(16)+"0"+Math.round(0).toString(16)
         }
+<<<<<<< HEAD
     });
 }
 
@@ -122,4 +186,72 @@ function workOutValues(percent)
 $('.radioButton').click(function() {
     var BA  = $('.radioButton:checked').val();
     console.log(BA + 'HI')
+=======
+        else
+        {
+            return "#"+Math.round(255).toString(16)+Math.round(255-(-percent-0.5)*510).toString(16)+"0"+Math.round(0).toString(16)
+        }
+    }
+    if(percent<=0)
+    {
+        if((-percent)*510<16)
+        {
+            return "#0"+Math.round((-percent)*510).toString(16)+Math.round(255).toString(16)+"0"+Math.round(0).toString(16)
+        }
+        else
+        {
+            return "#"+Math.round((-percent)*510).toString(16)+Math.round(255).toString(16)+"0"+Math.round(0).toString(16)
+        }
+    }
+    if(percent<=0.5)
+    {
+        if((percent)*510<16)
+        {
+            return "#0"+Math.round(0).toString(16)+Math.round(255).toString(16)+"0"+Math.round((percent)*510).toString(16)
+        }
+        else
+        {
+            return "#0"+Math.round(0).toString(16)+Math.round(255).toString(16)+Math.round((percent)*510).toString(16)
+        }
+    }
+    if(percent<=1)
+    {
+        if(255-(percent-0.5)*510<16)
+        {
+            return "#0"+Math.round(0).toString(16)+"0"+Math.round(255-(percent-0.5)*510).toString(16)+Math.round(255).toString(16)
+        }
+        else
+        {
+            return "#0"+Math.round(0).toString(16)+Math.round(255-(percent-0.5)*510).toString(16)+Math.round(255).toString(16)
+        }
+    }
+}
+
+// Get data from button presses
+$('.button').click(function() {
+    console.log("Handler for .click called!");
+    startDate = $('#startDate').val();
+    endDate = $('#endDate').val();
+    timePrecision = $(this).val();
+    ba = $("input[name='myRadio']:checked").val();
+    parseParameters = {
+        'startDate' : startDate,
+        'endDate' : endDate,
+        'state' : selectedState,
+        'timePrecision' : timePrecision,
+        'BA' : ba
+        }
+    console.log(parseParameters);
+    console.log(Date.parse(startDate));
+    console.log(Date.parse(endDate));
+
+    parseData(createGraph, parseParameters);
+});
+
+$(document).on('change',"input[name='myRadio']:radio",function(){
+    ba = $("input[name='myRadio']:checked").val();
+    document.getElementById('dateContainer').style.display = "block";
+    document.getElementById('selectionButtonContainer').style.display = "block";
+    console.log(ba);
+>>>>>>> Cameron
 });
