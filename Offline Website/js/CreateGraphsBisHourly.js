@@ -3,7 +3,7 @@
  */
 
 function parseData(createGraph, parseParameters) {
-    let fileString = "../data/" + parseParameters['BA'] + "_hourly_" + parseParameters['timePrecision'] + ".csv"
+    let fileString = "../../gen_data/" + parseParameters['BA'] + "_hourly_" + parseParameters['timePrecision'] + ".csv"
     // let fileString = "../data/DUK_hourly_Daily.csv"
     console.log(fileString);
     Papa.parse(fileString, {
@@ -15,7 +15,7 @@ function parseData(createGraph, parseParameters) {
 }
 
 function parseStats(parseParameters) {
-    let fileString = "../data/" + parseParameters['BA'] + "_settings_" + parseParameters['timePrecision'] + ".txt"
+    let fileString = "../../gen_data/" + parseParameters['BA'] + "_settings_" + parseParameters['timePrecision'] + ".txt"
     // let fileString = "../data/DUK_hourly_Daily.csv"
     console.log(fileString);
     Papa.parse(fileString, {
@@ -41,7 +41,7 @@ function printStats(data)
             maxIndex = i
         }
     }
-    typeOfPrediction = ["US prediction score","Arima Regression","RF Regression","RF Regression","SVM Regression","MLP Regression","MLP Regression"]
+    typeOfPrediction = ["US Prediction","Arima Regression","RF Regression","RF Regression","SVM Regression","MLP Regression","MLP Regression"]
 
     for(let j = 0; j < maxRow.length; j++)
     {
@@ -77,7 +77,8 @@ function updateAndDisplayStatsSidebar(firstRow, maxRow) {
     document.getElementById('statsContainer').style.display = "block"; //
 }
 
-function createGraph(data, parseParameters) {
+function createGraph(data, parseParameters)
+{
     let startDateArray = parseParameters['startDate'].split('/')
     let endDateArray = parseParameters['endDate'].split('/')
 
@@ -129,23 +130,24 @@ function createGraph(data, parseParameters) {
     if(startDateStart[0]>latestPos[0])
     {
         // is the start date specified later than the latest possible
-        outputStatement += "Start date is after latest avaiable date\n"
+        outputStatement += "Start date is after latest avaiable date"+data[data.length-2][0]+"\n"
         error = 1
     }
     else if(startDateStart[0]==latestPos[0]&&startDateStart[1]>latestPos[1])
     {
         // is the start date specified later than the latest possible
-        outputStatement += "Start date is after latest avaiable date\n"
+        outputStatement += "Start date is after latest avaiable date"+data[data.length-2][0]+"\n"
         error = 1
     }
     else if(startDateStart[0]==latestPos[0]&&startDateStart[1]==latestPos[1]&&startDateStart[1]>latestPos[1])
     {
         // is the start date specified later than the latest possible
-        outputStatement += "Start date is after latest avaiable date\n"
+        outputStatement += "Start date is after latest avaiable date"+data[data.length-2][0]+"\n"
         error = 1
     }
     if(error == 1)
     {
+        document.getElementById("chart").style.display = "none";
         alert(outputStatement)
         return
     }
@@ -162,16 +164,15 @@ function createGraph(data, parseParameters) {
         startDate = data[1][0]
     }
 
-    var time = [];
-    var Demand = ["Predicted Demand "];
+    var time = ["x"];
+    var Demand = ["Actual Demand "];
     var Forecast = ["U.S Forecast"];
-    var Prediction = ["Our Prediction"];
+    var Prediction = ["Arima  Prediction"];
     var RF_Prediction = ["RF Prediction"];
     var MLP_Prediction = ["MLP Prediction"];
     var SVM_Prediction = ["SVM Prediction"];
 
     var b = false;
-
     for (var i = 1; i < data.length; i++) {
         if(data[i][0]=="") {
             b = false
@@ -209,9 +210,13 @@ function createGraph(data, parseParameters) {
     var chart = c3.generate({
         to: '#chart',
         data: {
+            x: 'x',
+            xFormat: '%Y-%m-%d %H:%M:%S', // 'xFormat' can be used as custom format of 'x'
             columns:
 
-        [   Demand,
+        [
+            time,
+            Demand,
             Forecast,
             Prediction,
             RF_Prediction,
@@ -221,13 +226,10 @@ function createGraph(data, parseParameters) {
         },
         axis: {
             x: {
-                type: 'category',
-                categories: time,
+                type: 'timeseries',
                 tick: {
-                    multiline: false,
-                    culling: {
-                        max: 15
-                    }
+                    format: '%Y-%m-%d %H:%M:%S',
+                    count: 10,
                 }
             }
         },
@@ -239,5 +241,6 @@ function createGraph(data, parseParameters) {
         }
 
     });
+    document.getElementById("chart").style.display = "block";
     window.scrollTo(0,document.body.scrollHeight);
 }

@@ -7,7 +7,7 @@ var parseParameters = {};
 var ba = ""
 
 function parseStateColorsAndUpdate() {
-    Papa.parse("../data/stateColours.csv", {
+    Papa.parse("../../gen_data/stateColours.csv", {
         download: true,
         complete: function(results) {
             var resultsData = results.data
@@ -54,6 +54,7 @@ function printMap(data)
         click: function(event, data) {
             $('#clicked-state').text('You have selected: ' + data.name);
             selectedState = data.name;
+            document.getElementById("chart").style.display = "none";
 
             if(oldClass != "") {
                 document.getElementById(oldClass).style.display = "none";
