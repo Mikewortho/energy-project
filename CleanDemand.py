@@ -391,14 +391,10 @@ while(True):
                                     if(j == 0):
                                         for state in range(len(ba_state)):
                                             if BA_LIST[i] in ba_state[state]:
-                                                print(BA_LIST[i])
-                                                print(region[state])
                                                 counts[state] += 1
                                                 sum_demand = sum(last_dates["Demand"])
                                                 classifier_demand = sum(last_dates["RF Prediction"])
-                                                totals[state] += (((classifier_demand - sum_demand) / sum_demand)*100)
-                                                print(counts)
-                                                print(totals)                                    
+                                                totals[state] += (((classifier_demand - sum_demand) / sum_demand)*100)                                
                                     break
                                 
                             # Store new dates of predictions
