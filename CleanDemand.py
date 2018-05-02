@@ -122,6 +122,12 @@ labels = ["Daily", "Weekly", "Monthly"]
 s = [24, 168, 720]
 days_back = [28, 30, 60]
 
+# Parameters for aggregated statistics
+region = ["AL", "AZ", "CA", "CO", "FL", "GA", "ID", "IL", "KY", "MA", "MN", "MO", "NV", "NM", "NY", "NC", "OH", "OK", "OR", "PA", "SC", "SD", "TN", "TX", "WA"]
+ba_state = [["AEC"],["AZPS", "SRP", "SWPP", "TEPC", "WALC"],["BANC","CISO","IID","LDWP","TIDC","WWA"],["PSCO", "WACM", "WAUW"],["FMPP", "FPC", "FPL", "GVL", "HST", "JEA", "NSB", "SEC", "TAL", "TEC"],["SOCO"],["IPCO"],["EEI"],["LGEE"],["ISNE"],["MISO"],["AECI"],["NEVP"],["PNM"],["NYIS"],["CPLE", "CPLW", "DUK"],["OVEC"],["SPA"],["BPAT", "PACE", "PACW", "PGE"],["PJM"],["SC", "SCEG"],["NWMT"],["TVA"],["EPE", "ERCO"],["CHPD", "DOPD", "GCPD", "PSEI", "SCL", "TPWR"]]
+totals = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+counts = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+percentages = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
 start = time.time()-WAIT
 while(True):   
@@ -298,6 +304,7 @@ while(True):
                             # Get last known dates
                             f = open("gen_data/" + BA_LIST[i] + "_dates_" + labels[j] + ".txt", 'r')
                             date_info = f.read()
+                            f.close()
                             date_info = date_info.split("\n")        
                             date_info[0] = pd.to_datetime(date_info[0], format='%Y-%m-%dT%H')        
                             ij = 0
@@ -373,12 +380,43 @@ while(True):
                                     old_data.to_csv("gen_data/" + BA_LIST[i] + "_hourly_" + labels[j] + ".csv", index=False)
                                 
                                 else:
+                                    # Stats for graph
+                                    last_date = old_data["Date"].tail(1)
+                                    lower_condition = old_data.index > (last_date.index[0] - pd.Timedelta(hours=48))
+                                    last_dates = old_data[lower_condition]
+                                    demand_condition = last_dates.Demand != 0
+                                    last_dates = last_dates[demand_condition]
+                                    
+                                    # Tally counts and percent changes
+                                    if(j == 0):
+                                        for state in range(len(ba_state)):
+                                            if BA_LIST[i] in ba_state[state]:
+                                                counts[state] += 1
+                                                sum_demand = sum(last_dates["Demand"])
+                                                classifier_demand = sum(last_dates["RF Prediction"])
+                                                totals[state] += (((classifier_demand - sum_demand) / sum_demand)*100)                                
                                     break
                                 
                             # Store new dates of predictions
                             f = open("gen_data/" + BA_LIST[i] + "_dates_" + labels[j] + ".txt", 'w+')
                             f.write(str(date_info[0]) + "\n" + str(date_info[1]))
+                            f.flush()
+                            os.fsync(f)
                             f.close()
+                            
+                # Work out final percentages
+                for p in range(len(counts)):
+                    if(counts[p] > 0):
+                        percentages[p] = totals[p] / counts[p]
+                    percentages[p] = percentages[p] * 6
+                    if (percentages[p] > 100):
+                        percentages[p] = 100
+                    elif (percentages[p] < -100):
+                        percentages[p] = -100
+                percent_df = pd.DataFrame()
+                percent_df["State"] = region
+                percent_df["PredictionPercent"] = percentages
+                percent_df.to_csv("gen_data/stateColours.csv", index=False)
                             
                             
 
