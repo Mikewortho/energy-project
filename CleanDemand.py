@@ -417,7 +417,7 @@ while(True):
                 percent_df = pd.DataFrame()
                 percent_df["State"] = region
                 percent_df["PredictionPercent"] = percentages
-                percent_df.to_csv("gen_data/stateColours.csv")
+                percent_df.to_csv("gen_data/stateColours.csv", index=False)
                             
                             
 
