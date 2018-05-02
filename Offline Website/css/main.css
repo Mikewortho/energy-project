@@ -13,6 +13,17 @@
 /* Main font used on site */
  @import url('https://fonts.googleapis.com/css?family=Oswald:200,700');
 
+ @font-face {
+    font-family: Oswald-Regular;
+    src: url('font/Oswald-Regular.ttf');
+ }
+
+@font-face {
+    font-family: Oswald-Regular;
+    src: url('font/Oswald-Bold.ttf');
+    font-weight: bold;
+
+}
 /* ==========================================================================
    Base styles: opinionated defaults
    ========================================================================== */
@@ -110,7 +121,7 @@ textarea {
     margin: 0 auto;
     width: 800px;
     display: block;
-    font-family: 'Oswald';
+    font-family: 'Oswald',  'Helvetica', 'Calibri Light', 'Arial', 'Tahoma';
 }
 
 /* ==========================================================================
@@ -125,22 +136,26 @@ header {
 }
 
 .title {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald',  'Helvetica', 'Calibri Light', 'Arial', 'Tahoma';
     font-weight: 700;
     font-size: 64px;
     margin: 2px;
 }
 
 .subTitle {
-  font-family: 'Oswald', sans-serif;
-  font-weight: 200;
-  font-size: 34px;
-  margin: 2px;
+    font-family: 'Oswald',  'Helvetica', 'Calibri Light', 'Arial', 'Tahoma';
+    font-weight: 200;
+    font-size: 34px;
+    margin: 2px;
 }
 
 /* ==========================================================================
    Content
    ========================================================================== */
+
+p {
+    font-family: 'Oswald',  'Helvetica', 'Calibri Light', 'Arial', 'Tahoma';
+}
 
 #dateContainer {
     text-align: justify;
@@ -159,6 +174,29 @@ header {
     vertical-align: top;
 }
 
+.sidebar {
+    bottom: 0;
+    left: 0;
+    position: fixed;
+    display: table-row;
+}
+
+.sidebar th {
+    text-align: left;
+}
+
+.rightAligned {
+    text-align: right;
+}
+
+table {
+    border-collapse: separate;
+    border-spacing: 10px 0;
+}
+/* ==========================================================================
+   Selection Buttons
+   ========================================================================== */
+
 #selectionButtonContainer {
   height: 125px;
   text-align: justify;
@@ -170,7 +208,7 @@ header {
 #button1,
 #button2,
 #button3 {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Oswald',  'Helvetica', 'Calibri Light', 'Arial', 'Tahoma';
   font-weight: 700;
   width: 150px;
   height: 125px;
@@ -181,7 +219,7 @@ header {
 }
 
 button {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Oswald',  'Helvetica', 'Calibri Light', 'Arial', 'Tahoma';
   width: 100%;
   height: 50px;
   font-size: 34px;
@@ -213,7 +251,9 @@ button:focus {
   line-height: 0
 }
 
-/* Radio Button CSS */
+/* ==========================================================================
+   Radio Buttons
+   ========================================================================== */
 @keyframes click-wave {
   0% {
     height: 40px;
@@ -306,6 +346,7 @@ body label {
     display: table-cell;
     text-align: center;
 }
+
 
 /* ==========================================================================
    Helper classes

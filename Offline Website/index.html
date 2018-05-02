@@ -35,14 +35,13 @@
         <div class ="main">
             <div class="wrapper">
                 <div class = "content">
-                    <!-- <div id="chartContainer">FusionCharts will render here</div> -->
                     <p class="centered">Please select a State</p>
                     <div id="map" style="width: 800px; height: 500px;"></div>
                     <div id="clicked-state" class = "content centered"></div>
                     <div class="container"></div>
 
                     <div class="container" id = "radioButtonContainer">
-                    <!-- HTML for the radio buttons is loaded in main.js and kept in radioButtons.html -->
+                        <!-- HTML for the radio buttons is loaded in main.js and kept in radioButtons.html -->
                     </div>
 
                     <div class="container" id="dateContainer" style="display: none;">
@@ -58,22 +57,31 @@
 
                     <div class="container" id="selectionButtonContainer" style="display: none;">
                         <div class="buttonContainer" id="button0">
-                            <button type="button" id="hourlyButton" class="button" value="Hourly">Hourly</button>
+                            <button type="button" id="hourlyButton" class="button" value="Daily">Daily</button>
                         </div>
                         <div class="buttonContainer" id="button1">
-                            <button type="button" id="dailyButton" class="button" value="Daily">Daily</button>
+                            <button type="button" id="dailyButton" class="button" value="Weekly">Weekly</button>
                         </div>
                         <div class="buttonContainer" id="button2">
                             <button type="button" id="monthlyButton" class="button" value="Monthly">Monthly</button>
-                        </div>
-                        <div class="buttonContainer" id="button3">
-                            <button type="button" id="yearlyButton" class="button" value="Yearly">Yearly</button>
                         </div>
                         <span class="stretch"></span>
                     </div>
 
                     <div class="content">
                         <div id="chart"></div>
+                    </div>
+
+                    <div class="sidebar" style="display: none;" id="statsContainer">
+                        <p>Comparison of the similarity score of our highest scoring prediction model<br>with the actual US demand, compared to the official US forecast</p>
+                        <table id="statsTable">
+                            <tr>
+                                <th>Prediction</th>
+                                <th>R2 Score</th>
+                                <th>Spearman Correlation</th>
+                                <th>Pearson Correlation</th>
+                            <tr>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -85,17 +93,15 @@
             </div>
         </footer>
 
-        <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
-
-        <script>window.jQuery || document.write('<script src="js/vendor/jquery-3.2.1.min.js"><\/script>')</script>
+        <script src="js/vendor/jquery-3.2.1.min.js"></script>
         <script src="js/vendor/jquery-ui.min.js"></script>
         <script src="js/vendor/modernizr-3.5.0.min.js"></script>
         <script src="js/vendor/d3.v3.min.js"></script>
 		<script src="js/vendor/c3.min.js"></script>
         <script src="js/vendor/papaparse.min.js"></script>
 
-        <script src="http://newsignature.github.com/us-map/js/libs/raphael.js"></script>
-        <script src="http://newsignature.github.com/us-map/js/libs/jquery.usmap.js"></script>
+        <script src="js/lib/raphael.js"></script>
+        <script src="js/lib/jquery.usmap.js"></script>
         <script src="js/lib/plugins.js"></script>
 
         <script src="js/CreateGraphsBisHourly.js"></script>
