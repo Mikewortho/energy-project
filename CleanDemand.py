@@ -304,6 +304,7 @@ while(True):
                             # Get last known dates
                             f = open("gen_data/" + BA_LIST[i] + "_dates_" + labels[j] + ".txt", 'r')
                             date_info = f.read()
+                            f.close()
                             date_info = date_info.split("\n")        
                             date_info[0] = pd.to_datetime(date_info[0], format='%Y-%m-%dT%H')        
                             ij = 0
@@ -403,6 +404,8 @@ while(True):
                             # Store new dates of predictions
                             f = open("gen_data/" + BA_LIST[i] + "_dates_" + labels[j] + ".txt", 'w+')
                             f.write(str(date_info[0]) + "\n" + str(date_info[1]))
+                            f.flush()
+                            os.fsync(f)
                             f.close()
                             
                 # Work out final percentages
