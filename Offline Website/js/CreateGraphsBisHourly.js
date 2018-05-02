@@ -130,19 +130,19 @@ function createGraph(data, parseParameters)
     if(startDateStart[0]>latestPos[0])
     {
         // is the start date specified later than the latest possible
-        outputStatement += "Start date is after latest avaiable date\n"
+        outputStatement += "Start date is after latest avaiable date "+data[data.length-2][0]+"\n"
         error = 1
     }
     else if(startDateStart[0]==latestPos[0]&&startDateStart[1]>latestPos[1])
     {
         // is the start date specified later than the latest possible
-        outputStatement += "Start date is after latest avaiable date\n"
+        outputStatement += "Start date is after latest avaiable date "+data[data.length-2][0]+"\n"
         error = 1
     }
     else if(startDateStart[0]==latestPos[0]&&startDateStart[1]==latestPos[1]&&startDateStart[1]>latestPos[1])
     {
         // is the start date specified later than the latest possible
-        outputStatement += "Start date is after latest avaiable date\n"
+        outputStatement += "Start date is after latest avaiable date "+data[data.length-2][0]+"\n"
         error = 1
     }
     if(error == 1)
@@ -165,9 +165,9 @@ function createGraph(data, parseParameters)
     }
 
     var time = ["x"];
-    var Demand = ["Predicted Demand "];
+    var Demand = ["Actual Demand"];
     var Forecast = ["U.S Forecast"];
-    var Prediction = ["Our Prediction"];
+    var Prediction = ["Arima Prediction"];
     var RF_Prediction = ["RF Prediction"];
     var MLP_Prediction = ["MLP Prediction"];
     var SVM_Prediction = ["SVM Prediction"];
