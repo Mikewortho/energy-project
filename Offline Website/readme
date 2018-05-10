@@ -1,0 +1,22 @@
+A guide to setting up an offline website on a local host
+
+This is a fairly simple procedure and simply requires hosting the folder with
+any HTTP hosting service. In our testing we used the built in http server
+bundled with all python distributions.
+
+Direct your command line prompt to the folder that contains the gen_data
+folder, which if downloading from the latest github distribution should be
+unzipped into the energy-project folder.
+
+From here run the command
+
+for python 2:
+python -m SimpleHttpServer 8000
+
+for python 3:
+python -m http.server 8000
+
+Then direct any modern web browser to:
+localhost:8000
+
+Then follow as per the usability document
