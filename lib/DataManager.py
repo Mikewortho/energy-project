@@ -2,7 +2,7 @@ from lib import APIHandler
 
 # File names for CSV writing
 EIA_ELEC_DICT = "data/elec_demand_dictionary.csv"
-EIA_ELEC_TABLE = "data/elec_demand_hourly.csv"
+EIA_ELEC_TABLE = "data/newRows.csv"
 EIA_FORE_DICT = "data/forecast_dictionary.csv"
 EIA_FORE_TABLE = "data/forecast_hourly.csv"
 
