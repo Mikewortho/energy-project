@@ -1,0 +1,110 @@
+<!DOCTYPE HTML>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>Big Energy</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="manifest" href="site.webmanifest">
+        <link rel="apple-touch-icon" href="icon.png">
+        <!-- Place favicon.ico in the root directory -->
+
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css'">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css'">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/c3.css'">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.css'">
+    </head>
+
+    <body>
+        <!--[if lte IE 9]>
+            <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
+        <![endif]-->
+
+        <!-- Site content-->
+        <header>
+            <div class="wrapper">
+                <div class="content">
+                    <p class="title">Big Energy</p>
+                    <p class="subTitle">A Predictive Approach to US Electrical Demand Modelling</p>
+                </div>
+            </div>
+        </header>
+
+        <div class ="main">
+            <div class="wrapper">
+                <div class = "content">
+                    <p class="centered">Please select a State</p>
+                    <div id="map" style="width: 800px; height: 500px;"></div>
+                    <div id="clicked-state" class = "content centered"></div>
+                    <div class="container"></div>
+
+                    <div class="container" id = "radioButtonContainer">
+                        <!-- HTML for the radio buttons is loaded in main.js and kept in radioButtons.html -->
+                    </div>
+
+                    <div class="container" id="dateContainer" style="display: none;">
+                        <p class="centered">Please select a date range and time precision</p>
+                        <div id="startDateContainer">
+                            <p>Start Date:  <input type="text" id = "startDate"></p>
+                        </div>
+                        <div id="endDateContainer">
+                            <p>End Date:  <input type="text" id = "endDate"></p>
+                        </div>
+                        <span class="stretch"></span>
+                    </div>
+
+                    <div class="container" id="selectionButtonContainer" style="display: none;">
+                        <div class="buttonContainer" id="button0">
+                            <button type="button" id="hourlyButton" class="button" value="Daily">Daily</button>
+                        </div>
+                        <div class="buttonContainer" id="button1">
+                            <button type="button" id="dailyButton" class="button" value="Weekly">Weekly</button>
+                        </div>
+                        <div class="buttonContainer" id="button2">
+                            <button type="button" id="monthlyButton" class="button" value="Monthly">Monthly</button>
+                        </div>
+                        <span class="stretch"></span>
+                    </div>
+
+                    <div class="content">
+                        <div id="chart"></div>
+                    </div>
+
+                    <div class="sidebar" style="display: none;" id="statsContainer">
+                        <p>Comparison of the similarity score of our highest scoring prediction model<br>with the actual US demand, compared to the official US forecast</p>
+                        <table id="statsTable">
+                            <tr>
+                                <th>Prediction</th>
+                                <th>R2 Score</th>
+                                <th>Spearman Correlation</th>
+                                <th>Pearson Correlation</th>
+                            <tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <div class="wrapper">
+                <div class="content"></div>
+            </div>
+        </footer>
+
+        <script src="{{ url_for('static', filename='js/vendor/jquery-3.2.1.min.js')}}"></script>
+        <script src="{{ url_for('static', filename='js/vendor/jquery-ui.min.js')}}"></script>
+        <script src="{{ url_for('static', filename='js/vendor/modernizr-3.5.0.min.js')}}"></script>
+        <script src="{{ url_for('static', filename='js/vendor/d3.v3.min.js')}}"></script>
+		<script src="{{ url_for('static', filename='js/vendor/c3.min.js')}}"></script>
+        <script src="{{ url_for('static', filename='js/vendor/papaparse.min.js')}}"></script>
+
+        <script src="{{ url_for('static', filename='js/lib/raphael.js')}}"></script>
+        <script src="{{ url_for('static', filename='js/lib/jquery.usmap.js')}}"></script>
+        <script src="{{ url_for('static', filename='js/lib/plugins.js')}}"></script>
+
+        <script src="{{ url_for('static', filename='js/CreateGraphsBisHourly.js')}}"></script>
+        <script src="{{ url_for('static', filename='js/main.js')}}"></script>
+    </body>
+</html>
