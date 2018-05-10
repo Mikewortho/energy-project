@@ -166,7 +166,6 @@ while(True):
                 newRecords = newRecords.append(df[df['TimeAndDate']>df2.loc[df2['BA']==ba].index.tolist()[0]])
                 cindex+=1
             print('\r', 'Update of demand at time ', now.strftime("%Y-%m-%d %H:%M"),  '  : [', round((cindex/(56))*100,2),'% ]  complete' , end="")        
-        #reset Timer 
         if(newRecords.shape[0]>0):
             newRecords.to_csv("data/newRows.csv",index=False,date_format='%Y-%m-%dT%H:00:00.000Z')
             print("")
@@ -372,7 +371,7 @@ while(True):
                                     # Write out updated data
                                     old_data = old_data.append(pd.DataFrame(yhat[["Prediction", "RF Prediction", "MLP Prediction", "SVM Prediction"]]))
                                     old_data.Date = old_data.index
-                                    date_info[0] = date_info[0] + pd.Timedelta(hours=s[j])        
+                                    date_info[0] = old_data.iloc[-s[j]].Date       
                                     old_data = old_data[["Date", "Demand", "MLP Prediction", "Prediction", "RF Prediction", "SVM Prediction"]]
                                     old_data["US Forecast"] = us_forecast
                                     old_data = old_data.fillna(0)
