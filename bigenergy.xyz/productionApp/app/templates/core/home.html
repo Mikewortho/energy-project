@@ -1,0 +1,267 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>Big Energy</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="manifest" href="site.webmanifest">
+        <link rel="apple-touch-icon" href="icon.png">
+        <!-- Place favicon.ico in the root directory -->
+        <!-- <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/core.css' ) }}"> -->
+
+        <link rel="stylesheet" type"text/css" href="{{ url_for('static', filename='css/normalize.css' ) }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css' ) }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/c3.css')}}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.css')}}">
+    </head>
+    <body>
+        <!--[if lte IE 9]>
+            <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
+        <![endif]-->
+
+        <!-- Site content here -->
+        <header>
+            <div class="wrapper">
+                <div class="content">
+                    <p class="title">Big Energy</p>
+                    <p class="subTitle">A Predictive Approach to US Electrical Demand Modelling</p>
+                </div>
+            </div>
+        </header>
+
+        <div class ="main">
+            <div class="wrapper">
+                <div class = "content">
+                    <p class="centered">Please select a State</p>
+                    <div id="map" style="width: 800px; height: 500px;"></div>
+                    <div id="clicked-state" class = "content centered"></div>
+                    <div id="chart"></div>
+
+                    <div class="container" id = "radioButtonContainer">
+                        <div id="AL" style="display:none;" class="baContainer" title="ALABAMA BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input   type='radio' name='myRadio' class='radioButton' value='AEC'>AEC</div>
+                        </div>
+
+                        <div id="AZ" style="display:none;" class="baContainer" title="ARIZONA BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input   type='radio' name='myRadio' class='radioButton' value='AZPS'>AZPS</div>
+                            <div class="radioButtonDiv"><input   type='radio' name='myRadio' class='radioButton' value='TEPC'>TEPC</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='WALC'>WALC</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='SWPP'>SWPP</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='SRP'>SRP</div>
+                        </div>
+
+                        <div id="CA" style="display:none;" class="baContainer" title="CALIFORNIA BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='CISO'>CISO</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='LDWP'>LDWP</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='IID'>IID</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='BANC'>BANC</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='TIDC'>TIDC</div>
+                        </div>
+
+                        <div id="CO" style="display:none;" class="baContainer" title="COLORADO BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='PSCO'>PSCO</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='WAUW'>WAUW</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='WACM'>WACM</div>
+                        </div>
+
+                        <div id="FL" style="display:none;" class="baContainer" margin-top=100px title="FLORIDA BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='TAL'>TAL</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='SEC'>SEC</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='FPC'>FPC</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='JEA'>JEA</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='FPL'>FPL</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='HST'>HST</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='NSB'>NSB</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='FMPP'>FMPP</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='TEC'>TEC</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='GVL'>GVL</div>
+                        </div>
+
+                        <div id="GA" style="display:none;" class="baContainer" title="GEORGIA BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='SOCO'>SOCO</div>
+                        </div>
+
+                        <div id="ID" style="display:none;" class="baContainer" title="IDAHO BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='IPCO'>IPCO</div>
+                        </div>
+
+                        <div id="KY" style="display:none;" class="baContainer" title="KENTUCKY BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='LGEE'>LGEE</div>
+                        </div>
+
+                        <div id="MA" style="display:none;" class="baContainer" title="MASSACHUSETTS BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='ISNE'>ISNE</div>
+                        </div>
+
+                        <div id="MN" style="display:none;" class="baContainer" title="MINNESOTA BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='MISO'>MISO</div>
+                        </div>
+
+                        <div id="MO" style="display:none;" class="baContainer" title="MISSOURI BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='AECI'>AECI</div>
+                        </div>
+
+                        <div id="NV" style="display:none;" class="baContainer" title="NEVADA BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='NEVP'>NEVP</div>
+                        </div>
+
+                        <div id="NM" style="display:none;" class="baContainer" title="NEW MEXICO BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='PNM'>PNM</div>
+                        </div>
+
+                        <div id="NY" style="display:none;" class="baContainer" title="NEW YORK BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='NYIS'>NYIS</div>
+                        </div>
+
+                        <div id="NC" style="display:none;" class="baContainer" title="NORTH CAROLINA BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='DUK'>DUK</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='CPLW'>CPLW</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='CPLE'>CPLE</div>
+                        </div>
+
+                        <div id="OH" style="display:none;" class="baContainer" title="OHIO BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='OVEC'>OVEC</div>
+                        </div>
+
+                        <div id="OK" style="display:none;" class="baContainer" title="OKLAHOMA BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='SPA'>SPA</div>
+                        </div>
+
+                        <div id="OR" style="display:none;" class="baContainer" title="OREGON BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='PACE'>PACE</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='PACW'>PACW</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='PGE'>PGE</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='BPAT'>BPAT</div>
+                        </div>
+
+                        <div id="PA" style="display:none;" class="baContainer" title="PENNYSYLVANIA BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='PJM'>PJM</div>
+                        </div>
+
+                        <div id="SC" style="display:none;" class="baContainer" title="SOUTH CAROLINA BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='SCEG'>SCEG</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='SC'>SC</div>
+                        </div>
+
+                        <div id="SD" style="display:none;" class="baContainer" title="SOUTH DAKOTA BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='NWMT'>NWMT</div>
+                        </div>
+
+                        <div id="TN" style="display:none;" class="baContainer" title="TENNESSEE BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='TVA'>TVA</div>
+                        </div>
+
+                        <div id="TX" style="display:none;" class="baContainer" title="TEXAS BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='EPE'>EPE</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='ERCO'>ERCO</div>
+                        </div>
+
+                        <div id="WA" style="display:none;" class="baContainer" title="WASHINGTON BA's">
+                        	<p>Please Select A Balancing Authority</p>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='GCPD'>GCPD</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='TPWR'>TPWR</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='AVA'>AVA</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='CHPD'>CHPD</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='SCL'>SCL</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='DOPD'>DOPD</div>
+                            <div class="radioButtonDiv"><input  type='radio' name='myRadio' class='radioButton' value='PSEI'>PSEI</div>
+                        </div>
+                    </div>
+
+                    <div class="container" id="dateContainer" style="display: none;">
+                        <p class="centered">Please select a date range and time precision</p>
+                        <div id="startDateContainer">
+                            <p>Start Date:  <input type="text" id = "startDate"></p>
+                        </div>
+                        <div id="endDateContainer">
+                            <p>End Date:  <input type="text" id = "endDate"></p>
+                        </div>
+                        <span class="stretch"></span>
+                    </div>
+
+                    <div class="container" id="selectionButtonContainer" style="display: none;">
+                        <div class="buttonContainer" id="button0">
+                            <button type="button" id="hourlyButton" class="button" value="Daily">Daily</button>
+                        </div>
+                        <div class="buttonContainer" id="button1">
+                            <button type="button" id="dailyButton" class="button" value="Weekly">Weekly</button>
+                        </div>
+                        <div class="buttonContainer" id="button2">
+                            <button type="button" id="monthlyButton" class="button" value="Monthly">Monthly</button>
+                        </div>
+                        <span class="stretch"></span>
+                    </div>
+
+                    <div class="content container" id="chartContainer" >
+                        <div id="chart"></div>
+                    </div>
+
+                    <div class="sidebar" style="display: none;" id="statsContainer">
+                        <p>Comparison of the similarity score of our highest scoring prediction model<br>with the actual US demand, compared to the official US forecast</p>
+                        <table id="statsTable">
+                            <tr>
+                                <th>Prediction</th>
+                                <th>R2 Score</th>
+                                <th>Spearman Correlation</th>
+                                <th>Pearson Correlation</th>
+                            <tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <footer>
+            <div class="wrapper">
+                <div class="content"></div>
+            </div>
+        </footer>
+
+        <script src="{{ url_for('static', filename='js/vendor/modernizr-3.5.0.min.js')}}"></script>
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+        <!-- <script src="js/raphael.min.js"></script> -->
+        <!-- <script src="js/jquery.usmap.js"></script> -->
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery-3.2.1.min.js"><\/script>')</script>
+        <script src="{{ url_for('static', filename='js/lib/plugins.js')}}"></script>
+        <script src="{{ url_for('static', filename='js/vendor/jquery-ui.min.js')}}"></script>
+        <script src="{{ url_for('static', filename='js/vendor/jquery-ui.min.js')}}"></script>
+        <script src="{{ url_for('static', filename='js/vendor/papaparse.min.js')}}"></script>
+        <script src="{{ url_for('static', filename='js/vendor/c3.min.js')}}"></script>
+        <script src="{{ url_for('static', filename='js/vendor/d3.v3.min.js')}}"></script>
+
+        <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script> -->
+        <script src="http://newsignature.github.com/us-map/js/libs/raphael.js"></script>
+        <script src="http://newsignature.github.com/us-map/js/libs/jquery.usmap.js"></script>
+
+        <script src="{{ url_for('static', filename='js/CreateGraphsBisHourly.js')}}"></script>
+        <script src="{{ url_for('static', filename='js/main.js')}}"></script>
+    </body>
+</html>

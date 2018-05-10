@@ -1,0 +1,64 @@
+Guide to running the python web app
+
+********************************************************************************
+                              Server Configuration
+********************************************************************************
+
+When configuring this on a dreamhost server follow these steps, these should
+follow for any major hosting service with wsgi passenger services, usually
+used for hosting ruby apps, however also fine for python apps.
+
+During initial configuration, ensure that the server has wsgi enabled (with
+python enabled), create a file on the server with the name passenger_wsgi.py
+and copy the code from the supplied file with the same name. Create another
+folder in the root directory that will contain the name of your application
+(in our case productionApp) copy the folders across from the github
+folder bigenergy.xyz/productionApp. Modify the last two lines of
+passenger_wsgi.py to point to this folder.
+
+For dreamhost create a folder in the root directory called tmp and from the
+root directory run the command:
+
+touch tmp/restart.txt
+
+If enough time has passed for DNS propagation to occur then the web app should
+be running at this point.
+
+********************************************************************************
+                        Local Server Configuration
+********************************************************************************
+
+To run the application from a local host this is much simpler, ensure that the
+latest version of flask is installed via your python package manager. Download
+the latest version of bigenergy.xyz and navigate to the folder
+bigenergy.xyz/productionApp, run the program with
+
+python run.py
+
+Access through a web browser and navigate to 
+
+localhost:5000
+
+********************************************************************************
+                       Static file server configuration
+********************************************************************************
+
+Ensure you have set up a static file server also, in this case it was a spare
+domain www.playingthefield.xyz/bigenergy/data, create the appropriate
+subdirectories to store the data in and ftp all the csv files to this folder
+
+Ensure you have created an appropriate .htaccess file for cross origin requests
+headers to allow cross site access, in our case we have left this extremely
+unsecure by enabling all websites full access to our static file server, which
+is a room for improvement.
+
+In our .htaccess file on this server the file contents is:
+
+<IfModule mod_headers.c>
+	Header set Access-Control-Allow-Origin "*"
+    Header add Access-Control-Allow-Headers "origin, x-requested-with, content-type"
+	Header add Access-Control-Allow-Methods "PUT, GET, POST, DELETE, OPTIONS"
+</IfModule>
+
+Update the main.js and CreateGraphsBisHourly.js files to point to the new
+file server url on the main application server.
