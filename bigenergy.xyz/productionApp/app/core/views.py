@@ -29,6 +29,3 @@ def returnStateColour():
 
     #return os.getcwd()
 
-@mod.route('/beverley')
-def beverley():
-    return "Hi dad!"
