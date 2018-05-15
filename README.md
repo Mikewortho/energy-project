@@ -132,16 +132,16 @@ This tutorial is a walk through the website, explaining the different stages and
 
 From the map, it is possible to select any state where the colouring is based on the Red Green Blue (RGB) scale. When the colour is dark blue it is underpredicting the demand about -25%, green synonym of a good prediction, and dark red is overpridicting the real demand about +25%.
 By selecting a state, a list of the available Balancing Authorities (BA) of the state will be displayed (see following figure).
-![02](http://playingthefield.xyz/bigenergy/data/img/02.png)
+![02](http://playingthefield.xyz/bigenergy/data/img/02.PNG)
 
 By selecting one of the BAs, a menu will appear requesting the date range and time precision (Daily/Weekly/Monthly).  
-![03](http://playingthefield.xyz/bigenergy/data/img/03.png)
+![03](http://playingthefield.xyz/bigenergy/data/img/03.PNG)
 
 Finally, after filling the requested information, a graph and a comparison of the similarity score of the highest scoring prediction model with the actual US demand, compared to the official US forecast will be displayed.
-![04](http://playingthefield.xyz/bigenergy/data/img/04.png)
+![04](http://playingthefield.xyz/bigenergy/data/img/04.PNG)
 
 In order to obtain more details on the graph, it is possible to zoom on a specific date range using a two finger pinch.
-![05](http://playingthefield.xyz/bigenergy/data/img/05.png)
+![05](http://playingthefield.xyz/bigenergy/data/img/05.PNG)
 
 It is also possible to select specific information from the graph in order to compare by clicking on the legend.
-![06](http://playingthefield.xyz/bigenergy/data/img/06.png)
+![06](http://playingthefield.xyz/bigenergy/data/img/06.PNG)
