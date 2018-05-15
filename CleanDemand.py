@@ -212,7 +212,7 @@ while(True):
                 sc = SparkContext.getOrCreate(conf=conf)
                 spark = SQLContext(sc)
                 # create a dataframe of our new rows
-                demand_table = spark.read.csv("data/newRows.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd HH:mm'T'HH:mm:ss.000Z").select("BA","TimeAndDate","Demand")
+                demand_table = spark.read.csv("data/newRows.csv", header=True, inferSchema=True, timestampFormat="yyyy-MM-dd'T'HH:mm:ss.000Z").select("BA","TimeAndDate","Demand")
                 # if there is new records
                 if demand_table.dtypes[2][1] == "string":
                     demand_table = demand_table.select("BA","TimeAndDate","Demand").filter("Demand!='None'")

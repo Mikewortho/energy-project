@@ -818,5 +818,5 @@ FINAL <-rbind(as.matrix(ALABAMA),as.matrix(ALASKA),as.matrix(ARIZONA),as.matrix(
               as.matrix(RHODEISLAND),as.matrix(SOUTHCAROLINA),as.matrix(SOUTHDAKOTA),as.matrix(TENNESSEE),
               as.matrix(TEXAS),as.matrix(UTAH),as.matrix(VERMONT),as.matrix(VIRGINIA),as.matrix(WASHINGTON),
               as.matrix(WESTVIRGINIA),as.matrix(WISCONSIN),as.matrix(WYOMING))
-write.csv(FINAL ,file = "WEATHER.csv")
+write.csv(FINAL ,file = "data/WEATHER.csv")
 
