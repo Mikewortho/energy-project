@@ -1,8 +1,8 @@
-#User guide - Big Energy
+# User guide - Big Energy
 
 This piece of software was made to produce forecasts for EIA in relation to balancing authorities across the US, these forecasts will be viewable locally using html and javascript and be produced using Python, Sparksql and R.
  
-##Getting Started
+## Getting Started
 The Advanced User section is for users who want to regenerate the batch data, and can be ignored if you download the batch data directly. For beginner users just wanting to use the website, follow the User tutorial to learn how to interact with the system at http://www.bigenergy.xyz, and users wanting the real-time data and setting up the local website read the Display the Real-time data part of the document.
 
 The advanced user or any user wanting the real-time data update will need to install all the packages listed below, and clone the repository stored at https://github.com/sgmshaik/energy-project, as well as download the data.zip file stored at http://playingthefield.xyz/bigenergy/data/.
@@ -25,9 +25,9 @@ Noaa (Installed using install.packages("rnoaa"))
 If you are planning on using this tool you will need to set your system time to UTC.
 
 
-#Advanced Users:
+# Advanced Users:
 
-##Generating Data from Scratch:
+## Generating Data from Scratch:
 To generate the required demand data from EIA, the program.py program in the /lib/ folder needs to be run, this will then generate the relevant demand data needed in the /data/ folder.
 
 In order to gather the raw weather data the user must run the script entitled: Pull_Weather_Data.R. This must be done in an R studio environment - however please do not use the R studio environment within the Anaconda package as this does not have the needed library “rnoaa”. When using an R studio environment (that isn't anaconda based) please ensure that the rnoaa package is installed using the following command via the R studio command line - install.packages("rnoaa"). Finally all that is left to do is run the script (the script will take a LARGE amount of time to gather the data) it will finally be outputted into a csv file named WEATHER.csv. If the user wishes to change the name of the outputted csv file this can be done by altering its name on line 821 of the code.
@@ -40,11 +40,11 @@ Finally we need to clean the batch weather data this takes input WEATHER.csv and
 
 The batch forecast data from the machine learning models is generated through the forecasting_ml.py file. The previous steps of data generation must be ran and then forecasting_ml.py can be run. This takes a very long time to generate, if required to generated these batch forecasts. The output of the batch forecasts are written into the “gen_data” subdirectory and the various .csvs are related to the forecasts of individual balancing authorities over different time scales.
 
-##Optional
+## Optional
 To get three-hourly weather forecasts for 5 days in advance run weather.py in the same directory as the json file USstates_avg_latLong.json. Executing the code will output a file in the local directory, temperature_forecast.csv. This is a time-series of forecasts which is updated every 3hrs with a new row (3hr forecast) of data and also existing values in the file that have changed are also updated. After doing this all that is left to do is create the batch forecasts.
 
-#Guide to running the python web app
-##Server Configuration
+# Guide to running the python web app
+## Server Configuration
 When configuring this on a dreamhost server follow these steps, these should
 follow for any major hosting service with wsgi passenger services, usually
 used for hosting ruby apps, however also fine for python apps.
@@ -65,7 +65,7 @@ touch tmp/restart.txt
 If enough time has passed for DNS propagation to occur then the web app should
 be running at this point.
 
-##Local Server Configuration
+## Local Server Configuration
 
 To run the application from a local host this is much simpler, ensure that the
 latest version of flask is installed via your python package manager. Download
@@ -78,7 +78,7 @@ Access through a web browser and navigate to
 
 localhost:5000
 
-##Static file server configuration
+## Static file server configuration
 Ensure you have set up a static file server also, in this case it was a spare
 domain www.playingthefield.xyz/bigenergy/data, create the appropriate
 subdirectories to store the data in and ftp all the csv files to this folder
